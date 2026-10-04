@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlatMate — Анкета</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #F6F4EB;
+      color: #171513;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+
+    .survey-container {
+      width: 100%;
+      max-width: 900px;
+      height: 620px;
+      background-color: transparent;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+
+    .survey-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      color: #8A857B;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 3px;
+      background-color: #E2DFD5;
+      border-radius: 2px;
+      margin-bottom: 28px;
+      position: relative;
+    }
+
+    .progress-fill {
+      position: absolute;
+      top: 0; left: 0;
+      width: 14.2%;
+      height: 100%;
+      background-color: #295241;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .category-tag {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #8A857B;
+      margin-bottom: 12px;
+    }
+
+    .main-title {
+      font-size: 36px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      line-height: 1.2;
+    }
+
+
+    .subtitle-text {
+      font-size: 15px;
+      color: #706B63;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    .steps-content-wrapper {
+      flex: 1;
+    }
+
+    .survey-step {
+      display: none;
+    }
+
+    .survey-step.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .option-card {
+      background-color: #FFFFFF;
+      border-radius: 18px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+      height: 82px; /* Фиксированная высота карточек, чтобы всё было идеально симметрично */
+    }
+
+    .option-card h4 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #171513;
+      margin-bottom: 4px;
+    }
+
+    .option-card p {
+      font-size: 13px;
+      color: #8A857B;
+    }
+
+    .check-circle {
+      width: 24px;
+      height: 24px;
+      border: 1px solid #E2DFD5;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: transparent;
+      flex-shrink: 0;
+    }
+
+    .option-card.selected {
+      background-color: #295241;
+    }
+
+    .option-card.selected h4 { color: #FFFFFF; }
+    .option-card.selected p { color: rgba(255, 255, 255, 0.7); }
+    .option-card.selected .check-circle { background-color: #FFFFFF; border-color: #FFFFFF; }
+    .option-card.selected .check-circle::after {
+      content: "✓";
+      color: #295241;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .option-card:not(.selected):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+      border-color: #295241;
+    }
+
+    .rating-card {
+      background-color: #FFFFFF;
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.01);
+    }
+
+    .rating-number {
+      font-size: 48px;
+      font-weight: 800;
+      color: #171513;
+    }
+
+    .rating-status {
+      font-size: 15px;
+      color: #706B63;
+      margin-top: 4px;
+      margin-bottom: 28px;
+      font-weight: 500;
+    }
+
+    .rating-scale {
+      display: flex;
+      gap: 12px;
+    }
+
+    .scale-circle {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background-color: #EFECE3;
+      color: #8A857B;
+    }
+
+    .scale-circle.filled {
+      background-color: #295241;
+      color: #FFFFFF;
+    }
+
+    .btn-container {
+      margin-top: auto;
+      padding-top: 20px;
+    }
+
+    .btn-next {
+      background-color: #295241;
+      color: #FFFFFF;
+      width: 100%;
+      padding: 18px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background-color 0.15s ease;
+    }
+
+    .btn-next:hover {
+      background-color: #1F3D31;
+    }
+
+    .districts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr); /* Ровно 2 колонки */
+      gap: 12px; /* Расстояние между кнопками */
+      width: 100%;
+    }
+
+    .district-grid-item {
+      background-color: #FFFFFF;
+      border-radius: 16px;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+      transition: all 0.2s ease;
+      color: #171513;
+    }
+
+    .district-grid-item.selected {
+      background-color: #295241;
+      color: #FFFFFF;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="survey-container">
+  <div class="survey-header">
+    <span id="backButton" style="cursor: pointer;" onclick="goToPreviousStep()">← &nbsp;Шаг 1 из 7</span>
+    <span>Анкета</span>
+  </div>
+
+  <div class="progress-bar-container">
+    <div class="progress-fill" id="progressBar"></div>
+  </div>
+
+  <div class="category-tag">совместимость</div>
+
+  <div class="steps-content-wrapper">
+
+    <div class="survey-step active" id="step1Container">
+      <h1 class="main-title">Какой у вас режим?</h1>
+      <p class="subtitle-text">Самые частые ссоры начинаются с тишины после полуночи.</p>
+
+      <div class="options-list">
+        <div class="option-card selected" onclick="toggleSelection(this)">
+          <div>
+            <h4>Жаворонок</h4>
+            <p>Свет в 23:00, подъём к паре</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Сова</h4>
+            <p>Учёба ночью, утро медленное</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Гибкий режим</h4>
+            <p>Подстроюсь под соседа</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 2: ЧИСТОТА -->
+    <div class="survey-step" id="step2Container">
+      <h1 class="main-title">Насколько вам важна чистота?</h1>
+      <p class="subtitle-text">Честный ответ важнее «правильного».</p>
+
+      <div class="rating-card">
+        <div class="rating-number" id="ratingText">4/5</div>
+        <div class="rating-status" id="statusText">Люблю порядок</div>
+        <div class="rating-scale">
+          <div class="scale-circle filled" data-value="1" onclick="setRating(1)">1</div>
+          <div class="scale-circle filled" data-value="2" onclick="setRating(2)">2</div>
+          <div class="scale-circle filled" data-value="3" onclick="setRating(3)">3</div>
+          <div class="scale-circle filled" data-value="4" onclick="setRating(4)">4</div>
+          <div class="scale-circle" data-value="5" onclick="setRating(5)">5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 3: ЖИВОТНЫЕ -->
+    <div class="survey-step" id="step3Container">
+      <h1 class="main-title">Как относитесь к животным?</h1>
+      <p class="subtitle-text">Кот в квартире — это либо радость, либо аллергия.</p>
+
+      <div class="options-list">
+        <div class="option-card selected" onclick="toggleSelection(this)">
+          <div>
+            <h4>Люблю животных</h4>
+            <p>Буду рад пушистому соседу</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Нейтрально</h4>
+            <p>Главное, чтобы не мешали</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Аллергия / нельзя</h4>
+            <p>Категорически против животных</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 4: ГОСТИ -->
+    <div class="survey-step" id="step4Container">
+      <h1 class="main-title">Как часто зовёте гостей?</h1>
+      <p class="subtitle-text">Дом общий, даже если комната своя.</p>
+
+      <div class="options-list">
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Часто</h4>
+            <p>Друзья бывают каждую неделю</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card selected" onclick="toggleSelection(this)">
+          <div>
+            <h4>Иногда</h4>
+            <p>Раз в месяц — нормально</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Редко</h4>
+            <p>Дом — это тишина</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 5: КУРЕНИЕ -->
+    <div class="survey-step" id="step5Container">
+      <h1 class="main-title">Курение дома</h1>
+      <p class="subtitle-text">Запах остаётся в шторах — лучше сказать сразу.</p>
+
+      <div class="options-list">
+        <div class="option-card selected" onclick="toggleSelection(this)">
+          <div>
+            <h4>Не курю</h4>
+            <p>За чистое пространство без запахов</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Только на балконе</h4>
+            <p>Внутри квартиры курить нельзя</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>Можно дома</h4>
+            <p>Отношусь к курению спокойно</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ШАГ 6: БЮДЖЕТ -->
+    <div class="survey-step" id="step6Container">
+      <h1 class="main-title">Какой бюджет на комнату?</h1>
+      <p class="subtitle-text">Считаем вашу часть аренды в месяц.</p>
+
+      <div class="options-list">
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>до 120 000 ₸</h4>
+            <p>ваша часть аренды в месяц</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card selected" onclick="toggleSelection(this)">
+          <div>
+            <h4>120–180 000 ₸</h4>
+            <p>ваша часть аренды в месяц</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+        <div class="option-card" onclick="toggleSelection(this)">
+          <div>
+            <h4>180–250 000 ₸</h4>
+            <p>ваша часть аренды в месяц</p>
+          </div>
+          <div class="check-circle"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="survey-step" id="step7Container" style="display: none; width: 100%;">
+      <div class="step-grid-layout">
+        <div>
+          <h1 class="main-title">Какой район удобнее?</h1>
+          <p class="subtitle-text">Алматы большой — сначала ищем рядом с учёбой.</p>
+        </div>
+        <div class="districts-grid">
+          <div class="district-grid-item selected" onclick="this.classList.toggle('selected')">Бостандык</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Алмалы</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Медеу</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Ауэзов</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Наурызбай</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Алатау</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Турксиб</div>
+          <div class="district-grid-item" onclick="this.classList.toggle('selected')">Жетысу</div>
+        </div>
+      </div>
+    </div>
+
+
+  </div> <
+
+  <div class="btn-container">
+    <button class="btn-next" id="actionButton" onclick="goToNextStep()">
+      Дальше &nbsp;➔
+    </button>
+  </div>
+</div>
+
+</script>
+
+<script>
+  let currentStep = 1;
+  const statuses = { 1: "Порядок не важен", 2: "Убираюсь редко", 3: "Чисто по настроению", 4: "Люблю порядок", 5: "Идеальная чистота" };
+
+  document.getElementById('progressBar').style.width = "14.2%";
+
+  function toggleSelection(clickedCard) {
+    const parent = clickedCard.closest('.options-list');
+    parent.querySelectorAll('.option-card').forEach(card => card.classList.remove('selected'));
+    clickedCard.classList.add('selected');
+  }
+
+  function setRating(value) {
+    document.getElementById('ratingText').innerText = value + "/5";
+    document.getElementById('statusText').innerText = statuses[value];
+    document.querySelectorAll('.scale-circle').forEach(circle => {
+      const cv = parseInt(circle.getAttribute('data-value'));
+      if (cv <= value) circle.classList.add('filled');
+      else circle.classList.remove('filled');
+    });
+  }
+
+  function goToNextStep() {
+    if (currentStep === 1) {
+      switchStep(1, 2, "←  Шаг 2 из 7", "28.5%");
+    } else if (currentStep === 2) {
+      switchStep(2, 3, "←  Шаг 3 из 7", "42.8%");
+    } else if (currentStep === 3) {
+      switchStep(3, 4, "←  Шаг 4 из 7", "57.1%");
+    } else if (currentStep === 4) {
+      switchStep(4, 5, "←  Шаг 5 из 7", "71.4%");
+    } else if (currentStep === 5) {
+      switchStep(5, 6, "←  Шаг 6 из 7", "85.7%");
+    } else if (currentStep === 6) {
+      switchStep(6, 7, "←  Шаг 7 из 7", "100%");
+      document.getElementById('actionButton').innerHTML = "Показать совпадения &nbsp;✓";
+    } else {
+      location.href = "matches.html";
+    }
+  }
+
+  function goToPreviousStep() {
+    if (currentStep === 2) {
+      switchStep(2, 1, "←  Шаг 1 из 7", "14.2%");
+    } else if (currentStep === 3) {
+      switchStep(3, 2, "←  Шаг 2 из 7", "28.5%");
+    } else if (currentStep === 4) {
+      switchStep(4, 3, "←  Шаг 3 из 7", "42.8%");
+    } else if (currentStep === 5) {
+      switchStep(5, 4, "←  Шаг 4 из 7", "57.1%");
+    } else if (currentStep === 6) {
+      switchStep(6, 5, "←  Шаг 5 из 7", "71.4%");
+    } else if (currentStep === 7) {
+      switchStep(7, 6, "←  Шаг 6 из 7", "85.7%");
+      document.getElementById('actionButton').innerHTML = "Дальше &nbsp;➔";
+    }
+  }
+
+  function switchStep(from, to, headerText, progressWidth) {
+    document.getElementById(`step${from}Container`).style.display = 'none';
+    document.getElementById(`step${to}Container`).style.display = 'block';
+    document.getElementById('backButton').innerText = headerText;
+    document.getElementById('progressBar').style.width = progressWidth;
+    currentStep = to;
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlatMate — Ваши совпадения</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: #F6F4EB;
+            color: #171513;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .matches-container {
+            width: 100%;
+            max-width: 960px;
+            display: grid;
+            grid-template-columns: 280px 1fr; /* Левая колонка для заголовка, правая — для ленты */
+            gap: 50px;
+            align-items: start;
+        }
+
+
+        .left-panel {
+            position: sticky;
+            top: 40px;
+        }
+
+        .meta-tag {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #8A857B;
+            margin-bottom: 8px;
+        }
+
+        .page-title {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+            margin-bottom: 28px;
+        }
+
+        .profile-btn {
+            background-color: #FFFFFF;
+            border: 1px solid #E2DFD5;
+            padding: 14px 18px;
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #171513;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+            transition: all 0.2s;
+        }
+
+        .profile-btn:hover {
+            border-color: #295241;
+            transform: translateY(-1px);
+        }
+
+        .avatar-mini {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-image: url('https://unsplash.com');
+            background-size: cover;
+            background-position: center;
+        }
+
+
+        .matches-feed {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding-right: 10px;
+            max-width: 440px;
+        }
+
+        .matches-feed::-webkit-scrollbar { width: 4px; }
+        .matches-feed::-webkit-scrollbar-track { background: transparent; }
+        .matches-feed::-webkit-scrollbar-thumb { background: #E2DFD5; border-radius: 10px; }
+
+        .person-card {
+            background-color: #FFFFFF;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .person-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 28px rgba(41, 82, 65, 0.05);
+        }
+
+        .card-photo-area {
+            height: 380px;
+            position: relative;
+            background-size: cover;
+            background-position: center center;
+        }
+
+        .card-photo-area::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%);
+            z-index: 1;
+        }
+
+        .photo-bottom-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 2;
+        }
+
+        .person-info {
+            color: #FFFFFF;
+        }
+
+        .person-info h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 4px;
+        }
+
+        .person-info p {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .badge-percent {
+            background-color: #FFFFFF;
+            color: #171513;
+            width: 58px;
+            height: 58px;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            flex-shrink: 0;
+        }
+
+        .badge-percent .num {
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .badge-percent .sign {
+            font-size: 10px;
+            font-weight: 700;
+            color: #8A857B;
+            margin-top: 1px;
+        }
+
+        .card-reason-bar {
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #FFFFFF;
+        }
+
+        .reason-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #171513;
+        }
+
+        .arrow-icon {
+            font-size: 14px;
+            color: #8A857B;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="matches-container">
+
+    <div class="left-panel">
+        <div class="meta-tag">Ваши совпадения</div>
+        <h1 class="page-title">3 совпадения</h1>
+
+        <div class="sidebar-actions">
+            <a href="profile.html" class="profile-btn">
+                <div class="avatar-mini"></div>
+                <span>Анкета</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="matches-feed">
+
+        <a href="chat.html" class="person-card">
+            <div class="card-photo-area" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq9HlgAWYK2rfZqkpayEVYgeLXMmi_N14idUZLNZ16Vehs4X6eMpbPcbb-&s=10');">
+                <div class="photo-bottom-overlay">
+                    <div class="person-info">
+                        <h2>Айгерим, 20</h2>
+                        <p>📍 Бостандык · КБТУ</p>
+                    </div>
+                    <div class="badge-percent">
+                        <span class="num">75</span>
+                        <span class="sign">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-reason-bar">
+                <span class="reason-text">75% — совпадаете по животным и гостям</span>
+                <span class="arrow-icon">➔</span>
+            </div>
+        </a>
+
+        <a href="chat.html" class="person-card">
+            <div class="card-photo-area" style="background-image: url('https://i.pinimg.com/170x/83/2f/86/832f86b44c42cf96c6d030066d48d62f.jpg');">
+                <div class="photo-bottom-overlay">
+                    <div class="person-info">
+                        <h2>Сабина, 21</h2>
+                        <p>📍 Медеу · КИМЭП</p>
+                    </div>
+                    <div class="badge-percent">
+                        <span class="num">61</span>
+                        <span class="sign">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-reason-bar">
+                <span class="reason-text">61% — совпадаете по чистоте и курению</span>
+                <span class="arrow-icon">➔</span>
+            </div>
+        </a>
+
+        <a href="chat.html" class="person-card">
+            <div class="card-photo-area" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8IWEeuiqSV4xr_sHB1oBcv2rPAuy3UoQ9FLVVu8eTTuHTDXwouwjmJD8X&s=10');">
+                <div class="photo-bottom-overlay">
+                    <div class="person-info">
+                        <h2>Аружан, 19</h2>
+                        <p>📍 Алмалы · МУИТ</p>
+                    </div>
+                    <div class="badge-percent">
+                        <span class="num">58</span>
+                        <span class="sign">%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-reason-bar">
+                <span class="reason-text">58% — совпадаете по бюджету и режиму сна</span>
+                <span class="arrow-icon">➔</span>
+            </div>
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
