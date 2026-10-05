@@ -1,186 +1,26 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlatMate — Живите вместе</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
-
         body {
-            background: linear-gradient(135deg, rgba(23, 21, 19, 0.95) 0%, rgba(23, 21, 19, 0.8) 50%, rgba(17, 15, 14, 0.95) 100%),
-            url('https://unsplash.com') no-repeat center center;
-            background-size: cover;
-            background-attachment: fixed;
+            font-family: Arial, sans-serif;
+            background-color: #1A352B; /* Глубокий тёмно-зелёный из анкеты */
             color: #FFFFFF;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 60px 10% 50px 10%;
-            overflow-x: hidden;
+            margin: 40px;
         }
-
-        .header {
-            position: relative;
-            z-index: 2;
-        }
-
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
             font-size: 24px;
-            font-weight: 700;
-            letter-spacing: -0.4px;
-        }
-
-        .logo-icon {
-            width: 22px;
-            height: 22px;
-            fill: currentColor;
-        }
-
-        .content-main {
-            position: relative;
-            z-index: 2;
-            max-width: 680px;
-            margin-top: auto;
-            margin-bottom: auto;
-        }
-
-        .tagline {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 2.5px;
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 24px;
-        }
-
-        .main-title {
-            font-size: 64px;
-            font-weight: 900;
-            line-height: 1.05;
-            letter-spacing: -2px;
-            margin-bottom: 28px;
-        }
-
-        .description {
-            font-size: 16px;
-            line-height: 1.5;
-            color: rgba(255, 255, 255, 0.65);
-            max-width: 540px;
-            margin-bottom: 48px;
-        }
-
-        .stats-row {
-            display: flex;
-            gap: 56px;
-            margin-bottom: 56px;
-        }
-
-        .stat-card h3 {
-            font-size: 32px;
-            font-weight: 900;
-            letter-spacing: -0.5px;
-            margin-bottom: 4px;
-        }
-
-        .stat-card p {
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.45);
-            font-weight: 500;
-            white-space: nowrap;
-        }
-
-        .button-zone {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-        }
-
-        .btn-cta {
-            background-color: #F3F1EA;
-            color: #171513;
-            padding: 18px 44px;
-            border-radius: 35px;
-            font-size: 16px;
-            font-weight: 700;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background-color 0.15s ease;
-        }
-
-        .btn-cta:hover {
-            background-color: #E6E4DC;
-        }
-
-        .btn-link {
-            color: rgba(255, 255, 255, 0.45);
-            font-size: 15px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: color 0.15s ease;
-        }
-
-        .btn-link:hover {
-            color: #FFFFFF;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
 
-<header class="header">
-    <div class="logo">
-        <svg class="logo-icon" viewBox="0 0 24 24">
-            <path d="M12 3L2 12h3v8h4v-6h6v6h4v-8h3L12 3z"/>
-        </svg>
-        FlatMate
+    <div class="header">
+        <div class="logo">FlatMate</div>
     </div>
-</header>
-
-<main class="content-main">
-    <div class="tagline">Алматы · Для студентов</div>
-    <h1 class="main-title">Живите вместе —<br>совпадайте по жизни</h1>
-    <p class="description">
-        Не объявление в Telegram. Анкета, процент совместимости и чат — чтобы сосед совпал по режиму, чистоте и бюджету.
-    </p>
-
-    <div class="stats-row">
-        <div class="stat-card">
-            <h3>7</h3>
-            <p>привычек в анкете</p>
-        </div>
-        <div class="stat-card">
-            <h3>%</h3>
-            <p>прозрачный матч</p>
-        </div>
-        <div class="stat-card">
-            <h3>чат</h3>
-            <p>без номера сразу</p>
-        </div>
-    </div>
-
-    <div class="button-zone">
-        <a href="profile.html" class="btn-cta">
-            Заполнить анкету &nbsp;➔
-        </a>
-        <a href="matches.html" class="btn-link">
-            Посмотреть пример совпадений
-        </a>
-    </div>
-</main>
-
-<footer></footer>
 
 </body>
 </html>
