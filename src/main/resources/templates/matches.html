@@ -221,7 +221,7 @@
         <div class="sidebar-actions">
             <a href="profile.html" class="profile-btn">
                 <div class="avatar-mini"></div>
-                <span>Анкета</span>
+                <span>Профиль студента</span>
             </a>
         </div>
     </div>
@@ -286,7 +286,16 @@
         </a>
 
     </div>
-
+<script>
+  function toggleFavorite(p) {
+    const k = "flatmateFavorites";
+    let f = JSON.parse(localStorage.getItem(k) || "[]");
+    const i = f.findIndex(x => x.id === p.id);
+    if (i >= 0) f.splice(i, 1); else f.push(p);
+    localStorage.setItem(k, JSON.stringify(f));
+    return i < 0;
+  }
+</script>
 </div>
 
 </body>

@@ -50,6 +50,30 @@ textarea:focus { border-color: #295241; }
 .btn.ghost { background: #EFECE3; color: #171513; }
 .btn.ghost:hover { background: #E2DFD5; }
 .btn[disabled] { opacity: .5; cursor: default; }
+.status-pill { font-size: 12px; font-weight: 700; padding: 5px 11px; border-radius: 20px; background: #EFECE3; color: #706B63; }
+.status-pill.active { background: #E3EEE8; color: #295241; }
+.status-pill.looking { background: #FFF3D6; color: #7A5A12; }
+.status-pill.found { background: #EFECE3; color: #8A857B; }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; }
+.chip { border: 1px solid #E2DFD5; background: #FBFAF6; color: #171513; border-radius: 30px; padding: 12px 20px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .15s; }
+.chip.active { background: #295241; border-color: #295241; color: #fff; }
+.rev-summary { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 20px; }
+.rev-summary .big { font-size: 48px; font-weight: 800; }
+.stars { color: #295241; letter-spacing: 2px; font-size: 15px; }
+.crit { display: flex; gap: 18px; flex-wrap: wrap; font-size: 13px; color: #706B63; }
+.crit div { display: flex; flex-direction: column; gap: 2px; }
+.crit b { font-size: 17px; color: #171513; }
+.rev { padding: 16px 0; border-top: 1px solid #EFECE3; }
+.rev-head { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.rev p { font-size: 15px; line-height: 1.5; color: #3A3733; word-break: break-word; }
+.rev-form { margin-top: 20px; padding-top: 20px; border-top: 1px solid #EFECE3; }
+.pick-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 15px; font-weight: 600; }
+.picker button { background: none; border: none; font-size: 26px; color: #E2DFD5; cursor: pointer; padding: 0 2px; }
+.picker button.on { color: #295241; }
+.fav { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid #EFECE3; }
+.fav:first-child { border-top: none; }
+.fav b { display: block; font-size: 16px; }
+.msg-err { color: #B3402E; font-size: 13px; margin-bottom: 10px; min-height: 16px; }
 input[type=file] { display: none; }
 :focus-visible { outline: 2px solid #295241; outline-offset: 2px; }
 @media (max-width: 480px) { h1 { font-size: 28px; } .row { grid-template-columns: 1fr; } .top { flex-direction: column; align-items: flex-start; } }
@@ -69,8 +93,10 @@ input[type=file] { display: none; }
         <div class="name-line">
           <span id="viewName">Ваше имя</span>
           <span class="badge" id="badge">✓ Проверенный студент</span>
+          <span class="status-pill" id="statusPill"></span>
         </div>
         <div class="meta" id="viewMeta">Студент, курс не указан</div>
+        <div class="meta" id="viewRating"></div>
         <button class="link-btn" onclick="document.getElementById('photoInput').click()">Загрузить фото</button>
         <input type="file" id="photoInput" accept="image/*">
       </div>
@@ -94,7 +120,7 @@ input[type=file] { display: none; }
       <select id="course">
         <option value="">Выберите курс</option>
         <option value="1">1 курс</option><option value="2">2 курс</option><option value="3">3 курс</option>
-        <option value="4">4 курс</option><option value="5">5 курс</option>
+        <option value="4">4 курс</option>
         <option value="м1">Магистратура, 1 год</option><option value="м2">Магистратура, 2 год</option>
       </select>
     </div>
@@ -108,6 +134,15 @@ input[type=file] { display: none; }
   </div>
 
   <div class="card">
+    <h2>Статус поиска</h2>
+    <div class="chips">
+      <button type="button" class="chip" data-s="active" onclick="setStatus('active')">Активно ищу</button>
+      <button type="button" class="chip" data-s="looking" onclick="setStatus('looking')">Присматриваюсь</button>
+      <button type="button" class="chip" data-s="found" onclick="setStatus('found')">Нашёл</button>
+    </div>
+  </div>
+
+  <div class="card">
     <h2>Подтверждение студента</h2>
     <div class="verify-state" id="vState"><span class="dot"></span><span id="vText">Не подтверждено. Загрузите фото студенческого билета.</span></div>
     <img class="id-preview" id="idPreview" alt="Студенческий билет">
@@ -115,12 +150,33 @@ input[type=file] { display: none; }
     <input type="file" id="idInput" accept="image/*">
   </div>
 
+  <div class="card">
+    <h2>Отзывы соседей</h2>
+    <div class="rev-summary" id="revSummary"></div>
+    <div id="revList"></div>
+    <div class="rev-form">
+      <h2>Оставить отзыв</h2>
+      <div class="field"><label for="revAuthor">Ваше имя</label><input type="text" id="revAuthor" placeholder="Бывший сосед" maxlength="40"></div>
+      <div class="pick-row"><span>Чистота</span><div class="picker" data-key="clean"></div></div>
+      <div class="pick-row"><span>Пунктуальность</span><div class="picker" data-key="punct"></div></div>
+      <div class="pick-row"><span>Адекватность</span><div class="picker" data-key="adequacy"></div></div>
+      <div class="field"><label for="revText">Отзыв</label><textarea id="revText" maxlength="300" style="min-height:100px" placeholder="Как жилось вместе?"></textarea></div>
+      <div class="msg-err" id="revErr"></div>
+      <button type="button" class="btn ghost" onclick="submitReview()">Опубликовать отзыв</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Избранное</h2>
+    <div id="favList"></div>
+  </div>
+
   <button class="btn full" onclick="saveProfile()">Сохранить профиль</button>
 </div>
 
 <script>
   const $ = id => document.getElementById(id);
-  const state = { photo: "", verified: "none" }; // none | pending | ok
+  const state = { photo: "", verified: "none", status: "active" }; // verified: none | pending | ok; status: active | looking | found
 
   function render() {
     const name = $('name').value.trim();
@@ -132,6 +188,7 @@ input[type=file] { display: none; }
     $('viewMeta').textContent = [uni, courseText].filter(Boolean).join(" · ") || "Студент, курс не указан";
     $('viewBio').textContent = $('bio').value.trim();
     $('bioCount').textContent = $('bio').value.length;
+    renderStatus();
     const av = $('avatar');
     if (state.photo) { av.style.backgroundImage = `url(${state.photo})`; av.textContent = ""; }
     else { av.style.backgroundImage = ""; av.textContent = name ? name[0].toUpperCase() : "?"; }
@@ -170,6 +227,108 @@ input[type=file] { display: none; }
 
   ['name', 'age', 'uni', 'course', 'bio'].forEach(id => $(id).addEventListener('input', render));
 
+  const STATUSES = { active: "Активно ищу", looking: "Присматриваюсь", found: "Нашёл" };
+  const CRITERIA = { clean: "Чистота", punct: "Пунктуальность", adequacy: "Адекватность" };
+  const load = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch (e) { return d; } };
+  const store = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
+  let reviews = load("flatmateReviews", []);
+  let favorites = load("flatmateFavorites", []);
+  const draft = { clean: 0, punct: 0, adequacy: 0 };
+
+  function plural(n) {
+    const a = n % 10, b = n % 100;
+    return n + (a === 1 && b !== 11 ? " отзыв" : (a >= 2 && a <= 4 && (b < 10 || b >= 20)) ? " отзыва" : " отзывов");
+  }
+  const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
+
+  // Статус поиска
+  function setStatus(s) { state.status = s; renderStatus(); }
+  function renderStatus() {
+    document.querySelectorAll('.chip').forEach(c => c.classList.toggle('active', c.dataset.s === state.status));
+    const p = $('statusPill');
+    p.textContent = STATUSES[state.status];
+    p.className = "status-pill " + state.status;
+  }
+
+  // Отзывы и рейтинг
+  function buildPickers() {
+    document.querySelectorAll('.picker').forEach(p => {
+      for (let i = 1; i <= 5; i++) {
+        const b = document.createElement('button');
+        b.type = "button"; b.textContent = "★"; b.setAttribute('aria-label', i + " из 5");
+        b.onclick = () => { draft[p.dataset.key] = i; paintPickers(); };
+        p.appendChild(b);
+      }
+    });
+  }
+  function paintPickers() {
+    document.querySelectorAll('.picker').forEach(p =>
+      [...p.children].forEach((b, i) => b.classList.toggle('on', i < draft[p.dataset.key])));
+  }
+  function renderReviews() {
+    const n = reviews.length, keys = Object.keys(CRITERIA);
+    const avg = k => reviews.reduce((s, r) => s + r.ratings[k], 0) / n;
+    const total = n ? keys.reduce((s, k) => s + avg(k), 0) / keys.length : 0;
+    $('viewRating').textContent = n ? "★ " + total.toFixed(1) + " · " + plural(n) : "Пока нет отзывов";
+    $('revSummary').innerHTML = n
+      ? `<div class="big">${total.toFixed(1)}</div><div><div class="stars">${stars(total)}</div><div class="meta">${plural(n)}</div></div><div class="crit">` +
+        keys.map(k => `<div><span>${CRITERIA[k]}</span><b>${avg(k).toFixed(1)}</b></div>`).join("") + `</div>`
+      : `<div class="meta">Отзывов пока нет. Они появятся, когда бывшие соседи оценят вас.</div>`;
+    const list = $('revList');
+    list.textContent = "";
+    reviews.slice().reverse().forEach(r => {
+      const d = document.createElement('div'); d.className = "rev";
+      const h = document.createElement('div'); h.className = "rev-head";
+      const a = document.createElement('b'); a.textContent = r.author;
+      const s = document.createElement('span'); s.className = "stars";
+      s.textContent = stars((r.ratings.clean + r.ratings.punct + r.ratings.adequacy) / 3);
+      h.append(a, s); d.append(h);
+      if (r.text) { const t = document.createElement('p'); t.textContent = r.text; d.append(t); }
+      list.append(d);
+    });
+  }
+  function submitReview() {
+    if (Object.values(draft).some(v => !v)) { $('revErr').textContent = "Оцените все три критерия."; return; }
+    $('revErr').textContent = "";
+    reviews.push({ author: $('revAuthor').value.trim() || "Бывший сосед", ratings: { ...draft }, text: $('revText').value.trim(), date: Date.now() });
+    store("flatmateReviews", reviews);
+    Object.keys(draft).forEach(k => draft[k] = 0);
+    $('revAuthor').value = ""; $('revText').value = "";
+    paintPickers(); renderReviews();
+  }
+
+  // Избранное. toggleFavorite(профиль) можно вызывать и со страницы подбора.
+  function toggleFavorite(p) {
+    favorites = load("flatmateFavorites", []);
+    const i = favorites.findIndex(x => x.id === p.id);
+    if (i >= 0) favorites.splice(i, 1); else favorites.push(p);
+    store("flatmateFavorites", favorites);
+    renderFavorites();
+    return i < 0; // true — добавлен, false — удалён
+  }
+  function renderFavorites() {
+    const box = $('favList');
+    box.textContent = "";
+    if (!favorites.length) {
+      box.innerHTML = '<div class="meta">Пока пусто. Нажимайте ♡ на карточках в подборе, и профили появятся здесь.</div>';
+      return;
+    }
+    favorites.forEach(f => {
+      const row = document.createElement('div'); row.className = "fav";
+      const info = document.createElement('div');
+      const n = document.createElement('b'); n.textContent = f.name;
+      const m = document.createElement('span'); m.className = "meta";
+      m.textContent = [f.uni, f.course ? f.course + " курс" : ""].filter(Boolean).join(" · ");
+      info.append(n, m);
+      const btn = document.createElement('button'); btn.type = "button"; btn.className = "link-btn"; btn.style.marginTop = "0";
+      btn.textContent = "Убрать";
+      btn.onclick = () => { favorites = favorites.filter(x => x.id !== f.id); store("flatmateFavorites", favorites); renderFavorites(); };
+      row.append(info, btn);
+      box.append(row);
+    });
+  }
+  window.addEventListener('storage', () => { favorites = load("flatmateFavorites", []); renderFavorites(); });
+
   function saveProfile() {
     let ok = true;
     ['name', 'age', 'uni', 'course'].forEach(id => {
@@ -181,7 +340,7 @@ input[type=file] { display: none; }
     try {
       localStorage.setItem("flatmateProfile", JSON.stringify({
         name: $('name').value.trim(), age: $('age').value, uni: $('uni').value.trim(),
-        course: $('course').value, bio: $('bio').value.trim(), photo: state.photo, verified: state.verified
+        course: $('course').value, bio: $('bio').value.trim(), photo: state.photo, verified: state.verified, status: state.status
       }));
     } catch (e) {}
     location.href = "matches.html";
@@ -191,9 +350,12 @@ input[type=file] { display: none; }
     const saved = JSON.parse(localStorage.getItem("flatmateProfile") || "null");
     if (saved) {
       $('name').value = saved.name; $('age').value = saved.age; $('uni').value = saved.uni;
-      $('course').value = saved.course; $('bio').value = saved.bio || ""; state.photo = saved.photo || ""; state.verified = saved.verified || "none";
+      $('course').value = saved.course; $('bio').value = saved.bio || ""; state.photo = saved.photo || ""; state.verified = saved.verified || "none"; state.status = saved.status || "active";
     }
   } catch (e) {}
+  buildPickers();
+  renderReviews();
+  renderFavorites();
   render();
 </script>
 </body>
