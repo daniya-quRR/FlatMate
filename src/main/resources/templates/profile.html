@@ -31,6 +31,12 @@ label { font-size: 13px; font-weight: 600; color: #8A857B; }
 input[type=text], input[type=number], select { height: 52px; border-radius: 14px; border: 1px solid #E2DFD5; background: #FBFAF6; padding: 0 16px; font-size: 16px; color: #171513; outline: none; width: 100%; }
 input:focus, select:focus { border-color: #295241; }
 .err { border-color: #B3402E !important; }
+textarea { min-height: 140px; border-radius: 14px; border: 1px solid #E2DFD5; background: #FBFAF6; padding: 14px 16px; font-size: 16px; line-height: 1.5; color: #171513; outline: none; width: 100%; resize: vertical; }
+textarea:focus { border-color: #295241; }
+.hint { font-size: 13px; color: #8A857B; line-height: 1.5; margin-bottom: 14px; }
+.counter { font-size: 12px; color: #8A857B; text-align: right; margin-top: 6px; }
+.bio-view { margin-top: 20px; padding-top: 18px; border-top: 1px solid #EFECE3; font-size: 15px; line-height: 1.6; color: #3A3733; white-space: pre-wrap; word-break: break-word; }
+.bio-view:empty { display: none; }
 
 .verify-state { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #EFECE3; font-size: 14px; color: #706B63; margin-bottom: 16px; line-height: 1.4; }
 .verify-state.pending { background: #FFF3D6; color: #7A5A12; }
@@ -69,6 +75,7 @@ input[type=file] { display: none; }
         <input type="file" id="photoInput" accept="image/*">
       </div>
     </div>
+    <div class="bio-view" id="viewBio"></div>
   </div>
 
   <div class="card">
@@ -94,6 +101,13 @@ input[type=file] { display: none; }
   </div>
 
   <div class="card">
+    <h2>Расскажи о себе</h2>
+    <p class="hint">Чем увлекаетесь, как проводите свободное время и какого соседа ищете: режим дня, отношение к гостям, чистоте и тишине.</p>
+    <textarea id="bio" maxlength="500" placeholder="Люблю готовить и ходить в горы по выходным. Учусь допоздна, но тихо. Ищу спокойного и чистоплотного соседа."></textarea>
+    <div class="counter"><span id="bioCount">0</span> / 500</div>
+  </div>
+
+  <div class="card">
     <h2>Подтверждение студента</h2>
     <div class="verify-state" id="vState"><span class="dot"></span><span id="vText">Не подтверждено. Загрузите фото студенческого билета.</span></div>
     <img class="id-preview" id="idPreview" alt="Студенческий билет">
@@ -116,6 +130,8 @@ input[type=file] { display: none; }
     $('viewName').textContent = (name || "Ваше имя") + (age ? ", " + age : "");
     const courseText = course ? (course.startsWith("м") ? "магистратура, " + course.slice(1) + " год" : course + " курс") : "";
     $('viewMeta').textContent = [uni, courseText].filter(Boolean).join(" · ") || "Студент, курс не указан";
+    $('viewBio').textContent = $('bio').value.trim();
+    $('bioCount').textContent = $('bio').value.length;
     const av = $('avatar');
     if (state.photo) { av.style.backgroundImage = `url(${state.photo})`; av.textContent = ""; }
     else { av.style.backgroundImage = ""; av.textContent = name ? name[0].toUpperCase() : "?"; }
@@ -152,7 +168,7 @@ input[type=file] { display: none; }
     setTimeout(() => { state.verified = "ok"; render(); }, 3000);
   }));
 
-  ['name', 'age', 'uni', 'course'].forEach(id => $(id).addEventListener('input', render));
+  ['name', 'age', 'uni', 'course', 'bio'].forEach(id => $(id).addEventListener('input', render));
 
   function saveProfile() {
     let ok = true;
@@ -165,7 +181,7 @@ input[type=file] { display: none; }
     try {
       localStorage.setItem("flatmateProfile", JSON.stringify({
         name: $('name').value.trim(), age: $('age').value, uni: $('uni').value.trim(),
-        course: $('course').value, photo: state.photo, verified: state.verified
+        course: $('course').value, bio: $('bio').value.trim(), photo: state.photo, verified: state.verified
       }));
     } catch (e) {}
     location.href = "matches.html";
@@ -175,7 +191,7 @@ input[type=file] { display: none; }
     const saved = JSON.parse(localStorage.getItem("flatmateProfile") || "null");
     if (saved) {
       $('name').value = saved.name; $('age').value = saved.age; $('uni').value = saved.uni;
-      $('course').value = saved.course; state.photo = saved.photo || ""; state.verified = saved.verified || "none";
+      $('course').value = saved.course; $('bio').value = saved.bio || ""; state.photo = saved.photo || ""; state.verified = saved.verified || "none";
     }
   } catch (e) {}
   render();
