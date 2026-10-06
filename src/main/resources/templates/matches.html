@@ -192,15 +192,59 @@
         .card-reason-bar {
             padding: 16px 24px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
             background-color: #FFFFFF;
         }
 
-        .reason-text {
-            font-size: 14px;
+        .preference-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .preference-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 9px;
+            font-size: 13px;
             font-weight: 600;
             color: #171513;
+            line-height: 1.35;
+        }
+
+        .preference-mark {
+            width: 16px;
+            flex-shrink: 0;
+            color: #295241;
+            font-weight: 800;
+        }
+
+        .preference-list .different .preference-mark {
+            color: #B3402E;
+        }
+
+        .card-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .favorite-button {
+            border: 0;
+            padding: 0;
+            background: none;
+            color: #295241;
+            font: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .favorite-button.is-favorite {
+            color: #8A3B32;
         }
 
         .arrow-icon {
@@ -226,65 +270,8 @@
         </div>
     </div>
 
-    <div class="matches-feed">
-
-        <a href="chat.html" class="person-card">
-            <div class="card-photo-area" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq9HlgAWYK2rfZqkpayEVYgeLXMmi_N14idUZLNZ16Vehs4X6eMpbPcbb-&s=10');">
-                <div class="photo-bottom-overlay">
-                    <div class="person-info">
-                        <h2>Айгерим, 20</h2>
-                        <p>📍 Бостандык · КБТУ</p>
-                    </div>
-                    <div class="badge-percent">
-                        <span class="num">75</span>
-                        <span class="sign">%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="card-reason-bar">
-                <span class="reason-text">75% — совпадаете по животным и гостям</span>
-                <span class="arrow-icon">➔</span>
-            </div>
-        </a>
-
-        <a href="chat.html" class="person-card">
-            <div class="card-photo-area" style="background-image: url('https://i.pinimg.com/170x/83/2f/86/832f86b44c42cf96c6d030066d48d62f.jpg');">
-                <div class="photo-bottom-overlay">
-                    <div class="person-info">
-                        <h2>Сабина, 21</h2>
-                        <p>📍 Медеу · КИМЭП</p>
-                    </div>
-                    <div class="badge-percent">
-                        <span class="num">61</span>
-                        <span class="sign">%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="card-reason-bar">
-                <span class="reason-text">61% — совпадаете по чистоте и курению</span>
-                <span class="arrow-icon">➔</span>
-            </div>
-        </a>
-
-        <a href="chat.html" class="person-card">
-            <div class="card-photo-area" style="background-image: url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8IWEeuiqSV4xr_sHB1oBcv2rPAuy3UoQ9FLVVu8eTTuHTDXwouwjmJD8X&s=10');">
-                <div class="photo-bottom-overlay">
-                    <div class="person-info">
-                        <h2>Аружан, 19</h2>
-                        <p>📍 Алмалы · МУИТ</p>
-                    </div>
-                    <div class="badge-percent">
-                        <span class="num">58</span>
-                        <span class="sign">%</span>
-                    </div>
-                </div>
-            </div>
-            <div class="card-reason-bar">
-                <span class="reason-text">58% — совпадаете по бюджету и режиму сна</span>
-                <span class="arrow-icon">➔</span>
-            </div>
-        </a>
-
+    <div class="matches-feed" id="matchesFeed">
+        <!-- Карточки совпадений создаются автоматически -->
     </div>
 <script>
   function toggleFavorite(p) {
@@ -295,6 +282,129 @@
     localStorage.setItem(k, JSON.stringify(f));
     return i < 0;
   }
+
+    const preferenceDefaults = {
+        cleanliness: "normal",
+        sleep: "normal",
+        noise: "normal",
+        guests: "sometimes",
+        smoking: "no",
+        pets: "no",
+        social: "balanced"
+    };
+    const preferenceDescriptions = {
+        cleanliness: { match: "Одинаковый уровень чистоты", different: "Разный уровень чистоты" },
+        sleep: { match: "Одинаковый режим сна", different: "Разный режим сна" },
+        noise: { match: "Одинаковый уровень шума", different: "Разный уровень шума" },
+        guests: { match: "Одинаковое отношение к гостям", different: "Разное отношение к гостям" },
+        smoking: { match: "Одинаковое отношение к курению", different: "Разное отношение к курению" },
+        pets: { match: "Одинаковое отношение к животным", different: "Разное отношение к животным" },
+        social: { match: "Одинаковый уровень общительности", different: "Разный уровень общительности" }
+    };
+    const currentProfile = JSON.parse(localStorage.getItem("flatmateProfile") || "null");
+    const favoriteIds = new Set(
+        JSON.parse(localStorage.getItem("flatmateFavorites") || "[]").map(favorite => favorite.id)
+    );
+
+    const currentPreferences = {
+        ...preferenceDefaults,
+        ...(currentProfile && currentProfile.preferences ? currentProfile.preferences : {})
+    };
+    const roommates = [
+        {
+            id: 1,
+            name: "Айгерим",
+            age: 20,
+            uni: "КБТУ",
+            location: "Бостандык",
+            photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq9HlgAWYK2rfZqkpayEVYgeLXMmi_N14idUZLNZ16Vehs4X6eMpbPcbb-&s=10",
+            preferences: { cleanliness: "normal", sleep: "normal", noise: "normal", guests: "sometimes", smoking: "no", pets: "no", social: "balanced" }
+        },
+        {
+            id: 2,
+            name: "Сабина",
+            age: 21,
+            uni: "КИМЭП",
+            location: "Медеу",
+            photo: "https://i.pinimg.com/170x/83/2f/86/832f86b44c42cf96c6d030066d48d62f.jpg",
+            preferences: { cleanliness: "tidy", sleep: "normal", noise: "quiet", guests: "sometimes", smoking: "no", pets: "yes", social: "balanced" }
+        },
+        {
+            id: 3,
+            name: "Аружан",
+            age: 19,
+            uni: "МУИТ",
+            location: "Алмалы",
+            photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8IWEeuiqSV4xr_sHB1oBcv2rPAuy3UoQ9FLVVu8eTTuHTDXwouwjmJD8X&s=10",
+            preferences: { cleanliness: "normal", sleep: "late", noise: "normal", guests: "often", smoking: "no", pets: "no", social: "balanced" }
+        }
+    ];
+
+    const matches = roommates.map(roommate => {
+        const matchingPreferences = Object.keys(preferenceDefaults)
+            .filter(key => currentPreferences[key] === roommate.preferences[key]);
+        return {
+            ...roommate,
+            compatibility: Math.round((matchingPreferences.length / 7) * 100),
+            preferenceResults: Object.keys(preferenceDefaults).map(key => {
+                const matched = currentPreferences[key] === roommate.preferences[key];
+                return {
+                    matched,
+                    label: preferenceDescriptions[key][matched ? "match" : "different"]
+                };
+            })
+        };
+    }).sort((first, second) => second.compatibility - first.compatibility);
+
+    const matchCount = matches.length;
+    const countWord = matchCount === 1 ? "совпадение" : matchCount >= 2 && matchCount <= 4 ? "совпадения" : "совпадений";
+    document.querySelector(".page-title").textContent = `${matchCount} ${countWord}`;
+    document.getElementById("matchesFeed").innerHTML = matches.map(roommate => {
+        const isFavorite = favoriteIds.has(roommate.id);
+        return `
+            <a href="chat.html" class="person-card">
+                <div class="card-photo-area" style="background-image: url('${roommate.photo}');">
+                    <div class="photo-bottom-overlay">
+                        <div class="person-info">
+                            <h2>${roommate.name}, ${roommate.age}</h2>
+                            <p>📍 ${roommate.location} · ${roommate.uni}</p>
+                        </div>
+                        <div class="badge-percent">
+                            <span class="num">${roommate.compatibility}</span>
+                            <span class="sign">%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-reason-bar">
+                    <ul class="preference-list">
+                        ${roommate.preferenceResults.map(result => `
+                            <li class="${result.matched ? "matched" : "different"}">
+                                <span class="preference-mark">${result.matched ? "✓" : "✗"}</span>
+                                <span>${result.label}</span>
+                            </li>
+                        `).join("")}
+                    </ul>
+                    <div class="card-actions">
+                        <button type="button" class="favorite-button${isFavorite ? " is-favorite" : ""}" data-roommate-id="${roommate.id}" aria-pressed="${isFavorite}">
+                            ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
+                        </button>
+                        <span class="arrow-icon">➔</span>
+                    </div>
+                </div>
+            </a>
+        `;
+    }).join("");
+    document.querySelectorAll(".favorite-button").forEach(button => {
+        button.addEventListener("click", event => {
+            event.preventDefault();
+            event.stopPropagation();
+            const roommate = matches.find(person => person.id === Number(button.dataset.roommateId));
+            const isFavorite = toggleFavorite(roommate);
+            button.classList.toggle("is-favorite", isFavorite);
+            button.setAttribute("aria-pressed", isFavorite);
+            button.textContent = isFavorite ? "♥ В избранном" : "♡ В избранное";
+        });
+    });
 </script>
 </div>
 
