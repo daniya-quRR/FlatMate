@@ -4,10 +4,7 @@ import com.kz.flatmate.model.User;
 import com.kz.flatmate.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 public class FlatmateController {
@@ -16,30 +13,34 @@ public class FlatmateController {
     private UserRepository userRepository;
 
     @GetMapping("/")
-    public String showIndex() {
-        return "index";
+    public String showIndex() { 
+        return "index"; 
     }
 
     @GetMapping("/profile")
-    public String showProfile(Model model) {
-        model.addAttribute("user", new User());
-        return "profile";
-    }
-
-    @PostMapping("/profile/save")
-    public String saveProfile(@ModelAttribute("user") User user) {
-        userRepository.save(user);
-        return "redirect:/matches";
+    public String showProfile() { 
+        return "profile"; 
     }
 
     @GetMapping("/matches")
-    public String showMatches(Model model) {
-        model.addAttribute("users", userRepository.findAll());
-        return "matches";
+    public String showMatches() { 
+        return "matches"; 
     }
 
     @GetMapping("/chat")
-    public String showChat() {
-        return "chat";
+    public String showChat() { 
+        return "chat"; 
+    }
+
+    //сохранение анкеты из js через fetch
+    @PostMapping("/api/profile/save")
+    @ResponseBody
+    public String saveFromJs(@RequestBody User user) {
+        try {
+            userRepository.save(user);
+            return "ok";
+        } catch (Exception e) {
+            return "error";
+        }
     }
 }
