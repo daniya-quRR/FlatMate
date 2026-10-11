@@ -1,0 +1,1511 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlatMate — Профиль</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background: #F6F4EB;
+  color: #171513;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 640px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #8A857B;
+  font-weight: 500;
+  margin-bottom: 28px;
+}
+
+.header a {
+  color: inherit;
+  text-decoration: none;
+}
+
+h1 {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 10px;
+}
+
+.sub {
+  font-size: 15px;
+  color: #706B63;
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 28px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.02);
+}
+
+.card h2 {
+  font-size: 17px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #EFECE3 center/cover no-repeat;
+  color: #8A857B;
+  font-size: 34px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.top-info {
+  min-width: 0;
+}
+
+.name-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.meta {
+  font-size: 14px;
+  color: #706B63;
+  margin-top: 4px;
+}
+
+.badge {
+  display: none;
+  align-items: center;
+  gap: 6px;
+  background: #295241;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 20px;
+}
+
+.badge.show {
+  display: inline-flex;
+}
+
+.link-btn {
+  margin-top: 10px;
+  background: none;
+  border: none;
+  color: #295241;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.field:last-child {
+  margin-bottom: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8A857B;
+}
+
+input[type=text],
+input[type=number],
+select {
+  height: 52px;
+  border-radius: 14px;
+  border: 1px solid #E2DFD5;
+  background: #FBFAF6;
+  padding: 0 16px;
+  font-size: 16px;
+  color: #171513;
+  outline: none;
+  width: 100%;
+}
+
+input:focus,
+select:focus {
+  border-color: #295241;
+}
+
+.err {
+  border-color: #B3402E !important;
+}
+
+textarea {
+  min-height: 140px;
+  border-radius: 14px;
+  border: 1px solid #E2DFD5;
+  background: #FBFAF6;
+  padding: 14px 16px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #171513;
+  outline: none;
+  width: 100%;
+  resize: vertical;
+}
+
+textarea:focus {
+  border-color: #295241;
+}
+
+.hint {
+  font-size: 13px;
+  color: #8A857B;
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.counter {
+  font-size: 12px;
+  color: #8A857B;
+  text-align: right;
+  margin-top: 6px;
+}
+
+.bio-view {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #EFECE3;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #3A3733;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.bio-view:empty {
+  display: none;
+}
+
+.preference-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.preference-item {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.preference-item label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8A857B;
+}
+
+.preference-item select {
+  height: 52px;
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid #E2DFD5;
+  background: #FBFAF6;
+  padding: 0 14px;
+  font-size: 14px;
+  color: #171513;
+  outline: none;
+  cursor: pointer;
+}
+
+.preference-item select:focus {
+  border-color: #295241;
+}
+
+.verify-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #EFECE3;
+  font-size: 14px;
+  color: #706B63;
+  margin-bottom: 16px;
+  line-height: 1.4;
+}
+
+.verify-state.pending {
+  background: #FFF3D6;
+  color: #7A5A12;
+}
+
+.verify-state.ok {
+  background: #E3EEE8;
+  color: #295241;
+  font-weight: 600;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.id-preview {
+  display: none;
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background: #295241;
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color .15s;
+}
+
+.btn:hover {
+  background: #1F3D31;
+}
+
+.btn.full {
+  width: 100%;
+  padding: 18px;
+  margin-top: 8px;
+}
+
+.btn.ghost {
+  background: #EFECE3;
+  color: #171513;
+}
+
+.btn.ghost:hover {
+  background: #E2DFD5;
+}
+
+.profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.profile-actions .btn.full,
+.profile-actions .matches-link {
+  flex: 1 1 220px;
+}
+
+.profile-actions .btn.full {
+  width: auto;
+  margin-top: 0;
+}
+
+.profile-actions .matches-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.btn[disabled] {
+  opacity: .5;
+  cursor: default;
+}
+
+.status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 11px;
+  border-radius: 20px;
+  background: #EFECE3;
+  color: #706B63;
+}
+
+.status-pill.active {
+  background: #E3EEE8;
+  color: #295241;
+}
+
+.status-pill.looking {
+  background: #FFF3D6;
+  color: #7A5A12;
+}
+
+.status-pill.found {
+  background: #EFECE3;
+  color: #8A857B;
+}
+
+.chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  border: 1px solid #E2DFD5;
+  background: #FBFAF6;
+  color: #171513;
+  border-radius: 30px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.chip.active {
+  background: #295241;
+  border-color: #295241;
+  color: #fff;
+}
+
+.rev-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.rev-summary .big {
+  font-size: 48px;
+  font-weight: 800;
+}
+
+.stars {
+  color: #295241;
+  letter-spacing: 2px;
+  font-size: 15px;
+}
+
+.crit {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #706B63;
+}
+
+.crit div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.crit b {
+  font-size: 17px;
+  color: #171513;
+}
+
+.rev {
+  padding: 16px 0;
+  border-top: 1px solid #EFECE3;
+}
+
+.rev-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.rev p {
+  font-size: 15px;
+  line-height: 1.5;
+  color: #3A3733;
+  word-break: break-word;
+}
+
+.rev-form {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #EFECE3;
+}
+
+.pick-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.picker button {
+  background: none;
+  border: none;
+  font-size: 26px;
+  color: #E2DFD5;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.picker button.on {
+  color: #295241;
+}
+
+.fav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid #EFECE3;
+}
+
+.fav:first-child {
+  border-top: none;
+}
+
+.fav b {
+  display: block;
+  font-size: 16px;
+}
+
+.msg-err {
+  color: #B3402E;
+  font-size: 13px;
+  margin-bottom: 10px;
+  min-height: 16px;
+}
+
+input[type=file] {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid #295241;
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .preference-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 28px;
+  }
+
+  .row {
+    grid-template-columns: 1fr;
+  }
+
+  .top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+</style>
+</head>
+
+<body>
+  <form th:action="@{/profile/save}" th:object="${user}" method="post">
+    <!-- Просто скрытый ID для базы данных, препод всегда требует на лабах -->
+    <input type="hidden" th:field="*{id}" />
+
+    <div class="wrap">
+
+      <div class="header">
+        <a href="/">← &nbsp;Назад</a>
+        <span>Профиль</span>
+      </div>
+
+      <h1>Ваш профиль</h1>
+
+      <p class="sub">
+        Профиль увидят потенциальные соседи. Проверенный студент вызывает больше доверия.
+      </p>
+
+      <div class="card">
+        <div class="top">
+
+          <div class="avatar" id="avatar">?</div>
+
+          <div class="top-info">
+
+            <div class="name-line">
+              <span id="viewName">Ваше имя</span>
+
+              <span class="badge" id="badge">
+                ✓ Проверенный студент
+              </span>
+
+              <span class="status-pill" id="statusPill"></span>
+            </div>
+
+            <div class="meta" id="viewMeta">
+              Студент, курс не указан
+            </div>
+
+            <div class="meta" id="viewRating"></div>
+
+            <button
+              type="button"
+              class="link-btn"
+              onclick="document.getElementById('photoInput').click()">
+              Загрузить фото
+            </button>
+
+            <input
+              type="file"
+              id="photoInput"
+              accept="image/*">
+
+          </div>
+        </div>
+<div class="bio-view" id="viewBio"></div>
+  </div>
+
+  <div class="card">
+
+    <h2>Основное</h2>
+
+    <div class="row">
+
+      <div class="field">
+        <label for="name">Имя</label>
+
+        <!-- Связываем с полем name в Java -->
+        <input
+          type="text"
+          id="name"
+          th:field="*{name}"
+          placeholder="Айгерим"
+          maxlength="40">
+      </div>
+
+      <div class="field">
+        <label for="age">Возраст</label>
+
+        <!-- Связываем с полем age в Java -->
+        <input
+          type="number"
+          id="age"
+          th:field="*{age}"
+          placeholder="19"
+          min="16"
+          max="60">
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Учёба</h2>
+
+    <div class="field">
+
+      <label for="uni">Университет</label>
+
+      <!-- Связываем с полем university в Java -->
+      <input
+        type="text"
+        id="uni"
+        th:field="*{university}"
+        placeholder="КазНУ им. аль-Фараби"
+        maxlength="80">
+
+    </div>
+
+    <div class="field">
+
+      <label for="course">Курс</label>
+
+      <!-- Связываем с полем course в Java (для простоты сохраняем как текст/число) -->
+      <select id="course" th:field="*{course}">
+
+        <option value="">
+          Выберите курс
+        </option>
+
+        <option value="1">
+          1 курс
+        </option>
+
+        <option value="2">
+          2 курс
+        </option>
+
+        <option value="3">
+          3 курс
+        </option>
+
+        <option value="4">
+          4 курс
+        </option>
+
+        <!-- Магистратуру передаем как текст, в базе подстроится -->
+        <option value="5">
+          Магистратура, 1 год
+        </option>
+
+        <option value="6">
+          Магистратура, 2 год
+        </option>
+
+      </select>
+
+    </div>
+
+  </div>
+
+
+   <div class="card">
+
+    <h2>Расскажи о себе</h2>
+
+    <p class="hint">
+      Чем увлекаетесь, как проводите свободное время и какого соседа ищете:
+      режим дня, отношение к гостям, чистоте и тишине.
+    </p>
+
+    <!-- Привязываем к полю about в Java-модели User -->
+    <textarea
+      id="bio"
+      th:field="*{about}"
+      maxlength="500"
+      placeholder="Люблю готовить и ходить в горы по выходным. Учусь допоздна, но тихо. Ищу спокойного и чистоплотного соседа."></textarea>
+
+    <div class="counter">
+      <span id="bioCount">0</span> / 500
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Каким должен быть ваш сосед?</h2>
+
+    <div class="preference-grid">
+
+      <div class="preference-item">
+
+        <label for="cleanliness">
+          🧹 Чистота
+        </label>
+
+        <!-- Привязываем к полю cleanliness в Java-модели User -->
+        <select id="cleanliness" th:field="*{cleanliness}">
+
+          <option value="tidy">
+            Очень аккуратный
+          </option>
+
+          <option value="normal">
+            Средний
+          </option>
+
+          <option value="messy">
+            Не очень важно
+          </option>
+
+        </select>
+
+      </div>
+
+  <div class="preference-item">
+
+        <label for="sleep">
+          🌙 Режим сна
+        </label>
+
+        <!-- Привязываем к полю sleepMode в Java -->
+        <select id="sleep" th:field="*{sleepMode}">
+
+          <option value="early">
+            Жаворонок
+          </option>
+
+          <option value="normal">
+            Нейтральный
+          </option>
+
+          <option value="late">
+            Сова
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="preference-item">
+
+        <label for="noise">
+          🔊 Уровень шума
+        </label>
+
+        <!-- Привязываем к полю noiseLevel в Java -->
+        <select id="noise" th:field="*{noiseLevel}">
+
+          <option value="quiet">
+            Предпочитаю тишину
+          </option>
+
+          <option value="normal">
+            Умеренно
+          </option>
+
+          <option value="loud">
+            Шум не мешает
+          </option>
+
+        </select>
+
+      </div>
+
+<div class="preference-item">
+
+        <label for="guests">
+          👥 Гости
+        </label>
+
+        <!-- Привязываем к полю guests в Java -->
+        <select id="guests" th:field="*{guests}">
+
+          <option value="rare">
+            Редко
+          </option>
+
+          <option value="sometimes">
+            Иногда
+          </option>
+
+          <option value="often">
+            Часто
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="preference-item">
+
+        <label for="smoking">
+          🚭 Курение
+        </label>
+
+        <!-- Привязываем к полю smoking в Java -->
+        <select id="smoking" th:field="*{smoking}">
+
+          <option value="no">
+            Не курю
+          </option>
+
+          <option value="okay">
+            Не против
+          </option>
+
+          <option value="yes">
+            Курю
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="preference-item">
+
+        <label for="pets">
+          🐾 Животные
+        </label>
+
+        <!-- Привязываем к полю pets в Java -->
+        <select id="pets" th:field="*{pets}">
+
+          <option value="no">
+            Нет животных
+          </option>
+
+          <option value="okay">
+            Не против животных
+          </option>
+
+          <option value="yes">
+            Есть животные
+          </option>
+
+        </select>
+
+      </div>
+
+      <div class="preference-item">
+
+        <label for="social">
+          💬 Общительность
+        </label>
+
+        <!-- Привязываем к полю sociability в Java -->
+        <select id="social" th:field="*{sociability}">
+
+          <option value="quiet">
+            Предпочитаю тихого соседа
+          </option>
+
+          <option value="balanced">
+            Баланс
+          </option>
+
+          <option value="social">
+            Люблю общительных
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+  </div>
+
+   <div class="card">
+
+    <h2>Статус поиска</h2>
+
+    <!-- Скрытое поле, куда JS будет сохранять выбранный статус для базы данных -->
+    <input type="hidden" id="searchStatusInput" th:field="*{searchStatus}" value="active" />
+
+    <div class="chips">
+
+      <button
+        type="button"
+        class="chip"
+        data-s="active"
+        onclick="setStatus('active')">
+        Активно ищу
+      </button>
+
+      <button
+        type="button"
+        class="chip"
+        data-s="looking"
+        onclick="setStatus('looking')">
+        Присматриваюсь
+      </button>
+
+      <button
+        type="button"
+        class="chip"
+        data-s="found"
+        onclick="setStatus('found')">
+        Нашёл
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Подтверждение студента</h2>
+
+    <div class="verify-state" id="vState">
+
+      <span class="dot"></span>
+
+      <span id="vText">
+        Не подтверждено. Загрузите фото студенческого билета.
+      </span>
+
+    </div>
+
+    <img
+      class="id-preview"
+      id="idPreview"
+      alt="Студенческий билет">
+
+    <button
+      type="button"
+      class="btn ghost"
+      id="idBtn"
+      onclick="document.getElementById('idInput').click()">
+      Загрузить студенческий билет
+    </button>
+
+    <input
+      type="file"
+      id="idInput"
+      accept="image/*">
+
+  </div>
+
+  <div class="card">
+
+    <h2>Отзывы соседей</h2>
+
+    <div
+      class="rev-summary"
+      id="revSummary">
+    </div>
+
+    <div id="revList"></div>
+
+    <div class="rev-form">
+
+      <h2>Оставить отзыв</h2>
+
+      <div class="field">
+
+        <label for="revAuthor">
+          Ваше имя
+        </label>
+
+        <input
+          type="text"
+          id="revAuthor"
+          placeholder="Бывший сосед"
+          maxlength="40">
+
+      </div>
+
+      <div class="pick-row">
+
+        <span>Чистота</span>
+
+        <div
+          class="picker"
+          data-key="clean">
+        </div>
+
+      </div>
+
+      <div class="pick-row">
+
+        <span>Пунктуальность</span>
+
+        <div
+          class="picker"
+          data-key="punct">
+        </div>
+
+      </div>
+
+      <div class="pick-row">
+
+        <span>Адекватность</span>
+
+        <div
+          class="picker"
+          data-key="adequacy">
+        </div>
+
+      </div>
+
+      <div class="field">
+
+        <label for="revText">
+          Отзыв
+        </label>
+
+        <textarea
+          id="revText"
+          maxlength="300"
+          style="min-height:100px"
+          placeholder="Как жилось вместе?"></textarea>
+
+      </div>
+
+      <div
+        class="msg-err"
+        id="revErr">
+      </div>
+
+      <button
+        type="button"
+        class="btn ghost"
+        onclick="submitReview()">
+        Опубликовать отзыв
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="card">
+
+    <h2>Избранное</h2>
+
+    <div id="favList"></div>
+
+  </div>
+
+  <div class="profile-actions">
+
+    <!-- Меняем тип на submit, чтобы форма отправлялась в Java контроллер -->
+    <button
+      type="submit"
+      class="btn full">
+      Сохранить профиль
+    </button>
+
+    <!-- Исправляем локальную ссылку на серверный адрес контроллера -->
+    <a
+      href="/matches"
+      class="btn ghost matches-link">
+      Посмотреть совпадения
+    </a>
+
+  </div>
+
+</div>
+
+<!-- Закрываем тег формы, который мы открыли в самом начале body -->
+</form>
+
+<script>
+const $ = id => document.getElementById(id);
+
+const state = {
+  photo: "",
+  verified: "none",
+  status: "active"
+};
+
+/* =========================
+   ОТОБРАЖЕНИЕ ПРОФИЛЯ
+   ========================= */
+function render() {
+  const name = $('name').value.trim();
+  const age = $('age').value;
+  const uni = $('uni').value.trim();
+  const course = $('course').value;
+
+  $('viewName').textContent =
+    (name || "Ваше имя") +
+    (age ? ", " + age : "");
+
+  // Подстраиваем вывод курса под числовые значения из Java (5 и 6 - магистратура)
+  let courseText = "";
+  if (course) {
+    if (course === "5") {
+      courseText = "магистратура, 1 год";
+    } else if (course === "6") {
+      courseText = "магистратура, 2 год";
+    } else {
+      courseText = course + " курс";
+    }
+  }
+
+  $('viewMeta').textContent =
+    [uni, courseText].filter(Boolean).join(" · ")
+    || "Студент, курс не указан";
+
+  $('viewBio').textContent = $('bio').value.trim();
+  $('bioCount').textContent = $('bio').value.length;
+
+  renderStatus();
+
+
+  const av = $('avatar');
+  if (state.photo) {
+    av.style.backgroundImage = `url(${state.photo})`;
+    av.textContent = "";
+  } else {
+    av.style.backgroundImage = "";
+    av.textContent = name ? name[0].toUpperCase() : "?";
+  }
+
+  $('badge').classList.toggle(
+    'show',
+    state.verified === "ok"
+  );
+
+  const v = $('vState');
+  v.className =
+    "verify-state " +
+    (
+      state.verified === "pending"
+        ? "pending"
+        : state.verified === "ok"
+          ? "ok"
+          : ""
+    );
+
+  $('vText').textContent = {
+    none: "Не подтверждено. Загрузите фото студенческого билета.",
+    pending: "Билет на проверке. Обычно это занимает до 24 часов.",
+    ok: "Вы проверенный студент. Бейдж виден в вашем профиле."
+  }[state.verified];
+
+  $('idBtn').textContent =
+    state.verified === "none"
+      ? "Загрузить студенческий билет"
+      : "Заменить фото билета";
+
+  $('idBtn').disabled = state.verified === "ok";
+}
+
+/* =========================
+   ЗАГРУЗКА ФАЙЛОВ
+   ========================= */
+function readFile(file, cb) {
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Файл больше 5 МБ. Выберите фото поменьше.");
+    return;
+  }
+
+  const r = new FileReader();
+  r.onload = () => cb(r.result);
+  r.readAsDataURL(file);
+}
+
+$('photoInput').addEventListener(
+  'change',
+  e => readFile(
+    e.target.files[0],
+    data => {
+      state.photo = data;
+      render();
+    }
+  )
+);
+
+$('idInput').addEventListener(
+  'change',
+  e => readFile(
+    e.target.files[0],
+    data => {
+      $('idPreview').src = data;
+      $('idPreview').style.display = "block";
+      state.verified = "pending";
+      render();
+
+      setTimeout(() => {
+        state.verified = "ok";
+        render();
+      }, 3000);
+    }
+  )
+);
+
+/* =========================
+   СТАТУС
+   ========================= */
+const STATUSES = {
+  active: "Активно ищу",
+  looking: "Присматриваюсь",
+  found: "Нашёл"
+};
+
+function setStatus(s) {
+  state.status = s;
+  
+  // Передаем выбранный статус в скрытый инпут Thymeleaf для базы данных
+  const dbInput = $('searchStatusInput');
+  if (dbInput) {
+    dbInput.value = s;
+  }
+  renderStatus();
+}
+
+function renderStatus() {
+  document
+    .querySelectorAll('.chip')
+    .forEach(c => {
+      c.classList.toggle(
+        'active',
+        c.dataset.s === state.status
+      );
+    });
+
+  const p = $('statusPill');
+  if (p) {
+    p.textContent = STATUSES[state.status];
+    p.className = "status-pill " + state.status;
+  }
+}
+
+/* =========================
+   ОТЗЫВЫ
+   ========================= */
+const CRITERIA = {
+  clean: "Чистота",
+  punct: "Пунктуальность",
+  adequacy: "Адекватность"
+};
+
+const load = (k, d) => {
+  try {
+    const v = JSON.parse(localStorage.getItem(k));
+    return v == null ? d : v;
+  } catch (e) {
+    return d;
+  }
+};
+
+const store = (k, v) => {
+  try {
+    localStorage.setItem(k, JSON.stringify(v));
+  } catch (e) {}
+};
+
+let reviews = load("flatmateReviews", []);
+let favorites = load("flatmateFavorites", []);
+
+
+const draft = {
+  clean: 0,
+  punct: 0,
+  adequacy: 0
+};
+
+function plural(n) {
+  const a = n % 10;
+  const b = n % 100;
+  return n + (a === 1 && b !== 11 ? " отзыв" : (a >= 2 && a <= 4 && (b < 10 || b >= 20) ? " отзыва" : " отзывов"));
+}
+
+const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
+
+function buildPickers() {
+  document
+    .querySelectorAll('.picker')
+    .forEach(p => {
+      for (let i = 1; i <= 5; i++) {
+        const b = document.createElement('button');
+        b.type = "button";
+        b.textContent = "★";
+        b.setAttribute('aria-label', i + " из 5");
+        b.onclick = () => {
+          draft[p.dataset.key] = i;
+          paintPickers();
+        };
+        p.appendChild(b);
+      }
+    });
+}
+
+function paintPickers() {
+  document
+    .querySelectorAll('.picker')
+    .forEach(p =>
+      [...p.children].forEach((b, i) =>
+        b.classList.toggle('on', i < draft[p.dataset.key])
+      )
+    );
+}
+
+function renderReviews() {
+  const n = reviews.length;
+  const keys = Object.keys(CRITERIA);
+  const avg = k => reviews.reduce((s, r) => s + r.ratings[k], 0) / n;
+  const total = n ? keys.reduce((s, k) => s + avg(k), 0) / keys.length : 0;
+
+  const ratingView = $('viewRating');
+  if (ratingView) {
+    ratingView.textContent = n ? "★ " + total.toFixed(1) + " · " + plural(n) : "Пока нет отзывов";
+  }
+
+  const summaryView = $('revSummary');
+  if (summaryView) {
+    summaryView.innerHTML = n
+      ? `<div class="big">${total.toFixed(1)}</div>
+         <div>
+           <div class="stars">${stars(total)}</div>
+           <div class="meta">${plural(n)}</div>
+         </div>
+         <div class="crit">
+           ${keys.map(k => `<div><span>\({CRITERIA[k]}</span><b>\){avg(k).toFixed(1)}</b></div>`).join("")}
+         </div>`
+      : `<div class="meta">Отзывов пока нет. Они появятся, когда бывшие соседи оценят вас.</div>`;
+  }
+
+  const list = $('revList');
+  if (!list) return;
+  list.textContent = "";
+
+  reviews
+    .slice()
+    .reverse()
+    .forEach(r => {
+      const d = document.createElement('div');
+      d.className = "rev";
+      const h = document.createElement('div');
+      h.className = "rev-head";
+      const a = document.createElement('b');
+      a.textContent = r.author;
+      const s = document.createElement('span');
+      s.className = "stars";
+      s.textContent = stars((r.ratings.clean + r.ratings.punct + r.ratings.adequacy) / 3);
+      h.append(a, s);
+      d.append(h);
+
+      if (r.text) {
+        const t = document.createElement('p');
+        t.textContent = r.text;
+        d.append(t);
+      }
+      list.append(d);
+    });
+}
+
+function submitReview() {
+  if (Object.values(draft).some(v => !v)) {
+    $('revErr').textContent = "Оцените все три критерия.";
+    return;
+  }
+  $('revErr').textContent = "";
+
+  reviews.push({
+    author: $('revAuthor').value.trim() || "Бывший сосед",
+    ratings: { ...draft },
+    text: $('revText').value.trim(),
+    date: Date.now()
+  });
+
+  store("flatmateReviews", reviews);
+  Object.keys(draft).forEach(k => draft[k] = 0);
+  $('revAuthor').value = "";
+  $('revText').value = "";
+  paintPickers();
+  renderReviews();
+}
+
+/* =========================
+   ИЗБРАННОЕ
+   ========================= */
+function toggleFavorite(p) {
+  favorites = load("flatmateFavorites", []);
+  const i = favorites.findIndex(x => x.id === p.id);
+  if (i >= 0) {
+    favorites.splice(i, 1);
+  } else {
+    favorites.push(p);
+  }
+  store("flatmateFavorites", favorites);
+  renderFavorites();
+  return i < 0;
+}
+
+function renderFavorites() {
+  const box = $('favList');
+  if (!box) return;
+  box.textContent = "";
+
+  if (!favorites.length) {
+    box.innerHTML = '<div class="meta">Пока пусто. Нажимайте ♡ на карточках в подборе, и профили появятся здесь.</div>';
+    return;
+  }
+
+  favorites.forEach(f => {
+    const row = document.createElement('div');
+    row.className = "fav";
+    const info = document.createElement('div');
+    const n = document.createElement('b');
+    n.textContent = f.name;
+    const m = document.createElement('span');
+    m.className = "meta";
+    m.textContent = [f.uni, f.course ? f.course + " курс" : ""].filter(Boolean).join(" · ");
+    info.append(n, m);
+
+    const btn = document.createElement('button');
+    btn.type = "button";
+    btn.className = "link-btn";
+    btn.style.marginTop = "0";
+    btn.textContent = "Убрать";
+    btn.onclick = () => {
+      favorites = favorites.filter(x => x.id !== f.id);
+      store("flatmateFavorites", favorites);
+      renderFavorites();
+    };
+
+    row.append(info, btn);
+    box.append(row);
+  });
+}
+
+window.addEventListener('storage', () => {
+  favorites = load("flatmateFavorites", []);
+  renderFavorites();
+});
+
+/* =========================
+   ИНИЦИАЛИЗАЦИЯ И СЛУШАТЕЛИ
+   ========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  buildPickers();
+  renderReviews();
+  renderFavorites();
+
+  // Загружаем текущий статус из скрытого поля Thymeleaf
+  const currentStatusInput = $('searchStatusInput');
+  if (currentStatusInput && currentStatusInput.value) {
+    state.status = currentStatusInput.value;
+  }
+  
+  render();
+
+  // Привязываем обновление верхней карточки к полям ввода
+  ['name', 'age', 'uni', 'course', 'bio'].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    }
+  });
+});
+</script>
+
+</body>
+</html>

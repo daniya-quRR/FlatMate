@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlatMate — Чат</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      background-color: #F6F4EB;
+      color: #171513;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+    }
+
+    .chat-container {
+      width: 100%;
+      max-width: 620px;
+      height: 100%;
+      max-height: 820px;
+      background-color: #F6F4EB;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      padding: 16px 4px;
+      gap: 16px;
+      border-bottom: 1px solid rgba(226, 223, 213, 0.5);
+      background-color: #F6F4EB;
+    }
+
+    .back-arrow-btn {
+      font-size: 20px;
+      cursor: pointer;
+      color: #171513;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .chat-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background-image: url('https://unsplash.com');
+      background-size: cover;
+      background-position: center;
+    }
+
+    .header-user-info h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #171513;
+      margin-bottom: 2px;
+    }
+
+    .header-user-info p {
+      font-size: 13px;
+      color: #8A857B;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .lock-icon {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://w3.org' viewBox='0 0 24 24' fill='%238A857B'%3E%3Cpath d='M18 8h-1V6c0-2.76-1.64-5-4.5-5S8 3.24 8 6v2H7c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71.85-3.1 3.1-3.1 2.25 0 3.1 1.39 3.1 3.1v2z'/%3E%3C/svg%3E");
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+
+    .chat-messages-area {
+      flex: 1;
+      padding: 24px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .chat-messages-area::-webkit-scrollbar { width: 4px; }
+    .chat-messages-area::-webkit-scrollbar-thumb { background: #E2DFD5; border-radius: 4px; }
+
+    .system-notice {
+      background-color: #FFFFFF;
+      border-radius: 20px;
+      padding: 16px 24px;
+      font-size: 13px;
+      color: #706B63;
+      text-align: center;
+      max-width: 82%;
+      align-self: center;
+      line-height: 1.45;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+    }
+
+    .message-bubble {
+      padding: 16px 20px;
+      font-size: 15px;
+      line-height: 1.45;
+      max-width: 78%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.01);
+    }
+
+    .message-bubble.incoming {
+      background-color: #FFFFFF;
+      color: #171513;
+      border-radius: 20px;
+      border-bottom-left-radius: 6px;
+      align-self: flex-start;
+    }
+
+    .bubble-time {
+      font-size: 11px;
+      color: #A39E94;
+      margin-top: 6px;
+    }
+
+    .message-bubble.outgoing {
+      background-color: #295241;
+      color: #FFFFFF;
+      border-radius: 20px;
+      border-bottom-right-radius: 6px;
+      align-self: flex-end;
+    }
+    .message-bubble.outgoing .bubble-time {
+      color: rgba(255, 255, 255, 0.6);
+      text-align: right;
+    }
+
+
+    .chat-bottom-controls {
+      background-color: #F6F4EB;
+      padding-top: 12px;
+      padding-bottom: 12px;
+    }
+
+    .prompts-scroll-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+      overflow-x: auto;
+      padding-left: 4px;
+      padding-right: 4px;
+    }
+    .prompts-scroll-row::-webkit-scrollbar { display: none; }
+
+    .prompt-chip {
+      background-color: #FFFFFF;
+      border: 1px solid #E2DFD5;
+      padding: 10px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #171513;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background-color 0.15s;
+    }
+    .prompt-chip:hover {
+      background-color: #EFECE3;
+    }
+
+    .input-row-wrapper {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+    }
+
+    .chat-text-input {
+      flex: 1;
+      background-color: #FFFFFF;
+      border: 1px solid #E2DFD5;
+      padding: 16px 24px;
+      border-radius: 28px;
+      font-size: 15px;
+      outline: none;
+      color: #171513;
+    }
+    .chat-text-input::placeholder {
+      color: #A39E94;
+    }
+
+    .send-airplane-btn {
+      background-color: #295241;
+      color: #FFFFFF;
+      border: none;
+      width: 52px;
+      height: 42px;
+      border-radius: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s;
+      flex-shrink: 0;
+    }
+    .send-airplane-btn th:hover { background-color: #1F3D31; }
+
+    .airplane-svg {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      transform: rotate(45deg) translate(-1px, 1px);
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+
+  <header class="chat-header">
+    
+<a th:href="@{/matches}" class="back-arrow-btn">←</a>
+<div class="chat-avatar"></div>
+<div class="header-user-info">
+  <h3 th:text="${chatUser.name}">Имя студента</h3>
+  <p><span class="lock-icon"></span> номер скрыт · FlatMate</p>
+</div>
+  </header>
+
+  <div class="chat-messages-area" id="messagesBox">
+
+    <div class="system-notice">
+      FlatMate не показывает телефон, пока оба не согласятся. Это знакомство, не чат с OLX.
+    </div>
+
+    <div class="message-bubble incoming">
+      Привет! Тоже ищешь квартиру в Бостандыке?
+      <div class="bubble-time">18:02</div>
+    </div>
+
+  </div>
+
+  <div class="chat-bottom-controls">
+    <div class="prompts-scroll-row">
+      <button class="prompt-chip" onclick="selectPrompt(this)">Привет! Тоже ищешь квартиру ближе к универу?</button>
+      <button class="prompt-chip" onclick="selectPrompt(this)">Во сколько планируешь смотреть?</button>
+    </div>
+
+    <div class="input-row-wrapper">
+
+<input
+  type="text"
+  id="messageField"
+  class="chat-text-input"
+  placeholder="Напишите сообщение..."
+  onkeypress="handleKeyPress(event)"
+>
+      <button class="send-airplane-btn" onclick="executeSend()">
+        <svg class="airplane-svg" viewBox="0 0 24 24">
+          <line x1="22" y1="2" x2="11" y2="13"></line>
+          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  function selectPrompt(buttonElement) {
+    document.getElementById('messageField').value = buttonElement.innerText;
+    executeSend();
+  }
+
+  function handleKeyPress(e) {
+    if (e.key === 'Enter') executeSend();
+  }
+
+  function executeSend() {
+    const inputField = document.getElementById('messageField');
+    if (!inputField.value.trim()) return;
+
+    const messagesBox = document.getElementById('messagesBox');
+    const newBubble = document.createElement('div');
+    newBubble.className = 'message-bubble outgoing';
+
+    // Получаем текущее время на ноутбуке компьютера
+    const timestamp = new Date();
+    const formattedTime = timestamp.getHours().toString().padStart(2, '0') + ':' + timestamp.getMinutes().toString().padStart(2, '0');
+
+
+const messageText = document.createElement('div');
+messageText.textContent = inputField.value;
+newBubble.appendChild(messageText);
+
+const timeElement = document.createElement('div');
+timeElement.className = 'bubble-time';
+timeElement.textContent = formattedTime;
+newBubble.appendChild(timeElement);
+messagesBox.appendChild(newBubble);
+inputField.value = '';
+messagesBox.scrollTop = messagesBox.scrollHeight;
+  }
+</script>
+
+</body>
+</html>
