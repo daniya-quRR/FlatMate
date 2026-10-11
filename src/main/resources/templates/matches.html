@@ -260,10 +260,11 @@
 
     <div class="left-panel">
         <div class="meta-tag">Ваши совпадения</div>
-        <h1 class="page-title">3 совпадения</h1>
+        <h1 class="page-title">0 совпадений</h1>
 
         <div class="sidebar-actions">
-            <a href="profile.html" class="profile-btn">
+            <!-- Исправляем ссылку на серверный путь /profile -->
+            <a href="/profile" class="profile-btn">
                 <div class="avatar-mini"></div>
                 <span>Профиль студента</span>
             </a>
@@ -273,7 +274,17 @@
     <div class="matches-feed" id="matchesFeed">
         <!-- Карточки совпадений создаются автоматически -->
     </div>
+</div>
+
+<!-- Скрытый блок Thymeleaf, который переводит список студентов из PostgreSQL в формат JSON для JavaScript -->
+<script th:inline="javascript">
+    const dbUsers = /*[[${users}]]*/ [];
+</script>
+
+
 <script>
+  const $ = id => document.getElementById(id);
+
   function toggleFavorite(p) {
     const k = "flatmateFavorites";
     let f = JSON.parse(localStorage.getItem(k) || "[]");
@@ -285,60 +296,59 @@
 
     const preferenceDefaults = {
         cleanliness: "normal",
-        sleep: "normal",
-        noise: "normal",
+        sleepMode: "normal",
+        noiseLevel: "normal",
         guests: "sometimes",
         smoking: "no",
         pets: "no",
-        social: "balanced"
+        sociability: "balanced"
     };
+    
     const preferenceDescriptions = {
         cleanliness: { match: "Одинаковый уровень чистоты", different: "Разный уровень чистоты" },
-        sleep: { match: "Одинаковый режим сна", different: "Разный режим сна" },
-        noise: { match: "Одинаковый уровень шума", different: "Разный уровень шума" },
+        sleepMode: { match: "Одинаковый режим сна", different: "Разный режим сна" },
+        noiseLevel: { match: "Одинаковый уровень шума", different: "Разный уровень шума" },
         guests: { match: "Одинаковое отношение к гостям", different: "Разное отношение к гостям" },
         smoking: { match: "Одинаковое отношение к курению", different: "Разное отношение к курению" },
         pets: { match: "Одинаковое отношение к животным", different: "Разное отношение к животным" },
-        social: { match: "Одинаковый уровень общительности", different: "Разный уровень общительности" }
+        sociability: { match: "Одинаковый уровень общительности", different: "Разный уровень общительности" }
     };
-    const currentProfile = JSON.parse(localStorage.getItem("flatmateProfile") || "null");
+    
+    // Подгружаем сохраненный статус из скрытых полей Thymeleaf
+    const currentProfileInput = document.getElementById('searchStatusInput');
+    
+    const currentPreferences = {
+        cleanliness: document.getElementById('cleanliness') ? document.getElementById('cleanliness').value : "normal",
+        sleepMode: document.getElementById('sleep') ? document.getElementById('sleep').value : "normal",
+        noiseLevel: document.getElementById('noise') ? document.getElementById('noise').value : "normal",
+        guests: document.getElementById('guests') ? document.getElementById('guests').value : "sometimes",
+        smoking: document.getElementById('smoking') ? document.getElementById('smoking').value : "no",
+        pets: document.getElementById('pets') ? document.getElementById('pets').value : "no",
+        sociability: document.getElementById('social') ? document.getElementById('social').value : "balanced"
+    };
+
     const favoriteIds = new Set(
         JSON.parse(localStorage.getItem("flatmateFavorites") || "[]").map(favorite => favorite.id)
     );
 
-    const currentPreferences = {
-        ...preferenceDefaults,
-        ...(currentProfile && currentProfile.preferences ? currentProfile.preferences : {})
-    };
-    const roommates = [
-        {
-            id: 1,
-            name: "Айгерим",
-            age: 20,
-            uni: "КБТУ",
-            location: "Бостандык",
-            photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQq9HlgAWYK2rfZqkpayEVYgeLXMmi_N14idUZLNZ16Vehs4X6eMpbPcbb-&s=10",
-            preferences: { cleanliness: "normal", sleep: "normal", noise: "normal", guests: "sometimes", smoking: "no", pets: "no", social: "balanced" }
-        },
-        {
-            id: 2,
-            name: "Сабина",
-            age: 21,
-            uni: "КИМЭП",
-            location: "Медеу",
-            photo: "https://i.pinimg.com/170x/83/2f/86/832f86b44c42cf96c6d030066d48d62f.jpg",
-            preferences: { cleanliness: "tidy", sleep: "normal", noise: "quiet", guests: "sometimes", smoking: "no", pets: "yes", social: "balanced" }
-        },
-        {
-            id: 3,
-            name: "Аружан",
-            age: 19,
-            uni: "МУИТ",
-            location: "Алмалы",
-            photo: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS8IWEeuiqSV4xr_sHB1oBcv2rPAuy3UoQ9FLVVu8eTTuHTDXwouwjmJD8X&s=10",
-            preferences: { cleanliness: "normal", sleep: "late", noise: "normal", guests: "often", smoking: "no", pets: "no", social: "balanced" }
+    // Маппим реальных пользователей из базы данных в карточки
+    const roommates = dbUsers.map(user => ({
+        id: user.id,
+        name: user.name || "Студент",
+        age: user.age || 18,
+        uni: user.university || "ВУЗ не указан",
+        location: user.course ? (user.course + " курс") : "Курс не указан",
+        photo: "https://gstatic.com",
+        preferences: {
+            cleanliness: user.cleanliness || "normal",
+            sleepMode: user.sleepMode || "normal",
+            noiseLevel: user.noiseLevel || "normal",
+            guests: user.guests || "sometimes",
+            smoking: user.smoking || "no",
+            pets: user.pets || "no",
+            sociability: user.sociability || "balanced"
         }
-    ];
+    }));
 
     const matches = roommates.map(roommate => {
         const matchingPreferences = Object.keys(preferenceDefaults)
@@ -359,11 +369,11 @@
     const matchCount = matches.length;
     const countWord = matchCount === 1 ? "совпадение" : matchCount >= 2 && matchCount <= 4 ? "совпадения" : "совпадений";
     document.querySelector(".page-title").textContent = `${matchCount} ${countWord}`;
-    document.getElementById("matchesFeed").innerHTML = matches.map(roommate => {
+    
+        document.getElementById("matchesFeed").innerHTML = matches.map(roommate => {
         const isFavorite = favoriteIds.has(roommate.id);
         return `
-            <a href="chat.html" class="person-card">
-                <div class="card-photo-area" style="background-image: url('${roommate.photo}');">
+<a href="/profile/view/${roommate.id}" class="person-card">                <div class="card-photo-area" style="background-image: url('\${roommate.photo}');">
                     <div class="photo-bottom-overlay">
                         <div class="person-info">
                             <h2>${roommate.name}, ${roommate.age}</h2>
@@ -394,6 +404,8 @@
             </a>
         `;
     }).join("");
+
+
     document.querySelectorAll(".favorite-button").forEach(button => {
         button.addEventListener("click", event => {
             event.preventDefault();
@@ -406,7 +418,6 @@
         });
     });
 </script>
-</div>
 
 </body>
 </html>

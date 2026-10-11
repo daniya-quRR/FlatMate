@@ -13,8 +13,8 @@ public class User {
     private String name;
     private Integer age;
     private String university;
-    private Integer course;
-    
+    private String course; 
+
     @Column(length = 500)
     private String about;
 
@@ -37,8 +37,8 @@ public class User {
     public void setAge(Integer age) { this.age = age; }
     public String getUniversity() { return university; }
     public void setUniversity(String university) { this.university = university; }
-    public Integer getCourse() { return course; }
-    public void setCourse(Integer course) { this.course = course; }
+    public String getCourse() { return course; }
+    public void setCourse(String course) { this.course = course; }
     public String getAbout() { return about; }
     public void setAbout(String about) { this.about = about; }
     public String getCleanliness() { return cleanliness; }

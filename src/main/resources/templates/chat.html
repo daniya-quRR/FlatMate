@@ -232,12 +232,13 @@
 <div class="chat-container">
 
   <header class="chat-header">
-    <a href="matches.html" class="back-arrow-btn">←</a>
-    <div class="chat-avatar"></div>
-    <div class="header-user-info">
-      <h3>Aйгерим</h3>
-      <p><span class="lock-icon"></span> номер скрыт · 75% совместимость</p>
-    </div>
+    
+<a th:href="@{/matches}" class="back-arrow-btn">←</a>
+<div class="chat-avatar"></div>
+<div class="header-user-info">
+  <h3 th:text="${chatUser.name}">Имя студента</h3>
+  <p><span class="lock-icon"></span> номер скрыт · FlatMate</p>
+</div>
   </header>
 
   <div class="chat-messages-area" id="messagesBox">
@@ -260,7 +261,14 @@
     </div>
 
     <div class="input-row-wrapper">
-      <input type="text" id="messageField" class="chat-text-input" placeholder="Сообщение для Айгерим" onkeypress="handleKeyPress(event)">
+
+<input
+  type="text"
+  id="messageField"
+  class="chat-text-input"
+  placeholder="Напишите сообщение..."
+  onkeypress="handleKeyPress(event)"
+>
       <button class="send-airplane-btn" onclick="executeSend()">
         <svg class="airplane-svg" viewBox="0 0 24 24">
           <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -294,12 +302,18 @@
     const timestamp = new Date();
     const formattedTime = timestamp.getHours().toString().padStart(2, '0') + ':' + timestamp.getMinutes().toString().padStart(2, '0');
 
-    newBubble.innerHTML = inputField.value + `<div class="bubble-time">${formattedTime}</div>`;
 
-    messagesBox.appendChild(newBubble);
-    inputField.value = '';
+const messageText = document.createElement('div');
+messageText.textContent = inputField.value;
+newBubble.appendChild(messageText);
 
-    messagesBox.scrollTop = messagesBox.scrollHeight;
+const timeElement = document.createElement('div');
+timeElement.className = 'bubble-time';
+timeElement.textContent = formattedTime;
+newBubble.appendChild(timeElement);
+messagesBox.appendChild(newBubble);
+inputField.value = '';
+messagesBox.scrollTop = messagesBox.scrollHeight;
   }
 </script>
 

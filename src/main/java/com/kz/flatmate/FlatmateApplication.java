@@ -9,5 +9,4 @@ public class FlatmateApplication {
     public static void main(String[] args) {
         SpringApplication.run(FlatmateApplication.class, args);
     }
-
 }
