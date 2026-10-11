@@ -1194,9 +1194,6 @@ function render() {
   $('idBtn').disabled = state.verified === "ok";
 }
 
-/* =========================
-   ЗАГРУЗКА ФАЙЛОВ
-   ========================= */
 function readFile(file, cb) {
   if (!file) return;
 
@@ -1239,9 +1236,6 @@ $('idInput').addEventListener(
   )
 );
 
-/* =========================
-   СТАТУС
-   ========================= */
 const STATUSES = {
   active: "Активно ищу",
   looking: "Присматриваюсь",
@@ -1251,7 +1245,6 @@ const STATUSES = {
 function setStatus(s) {
   state.status = s;
   
-  // Передаем выбранный статус в скрытый инпут Thymeleaf для базы данных
   const dbInput = $('searchStatusInput');
   if (dbInput) {
     dbInput.value = s;
@@ -1276,9 +1269,6 @@ function renderStatus() {
   }
 }
 
-/* =========================
-   ОТЗЫВЫ
-   ========================= */
 const CRITERIA = {
   clean: "Чистота",
   punct: "Пунктуальность",
@@ -1366,7 +1356,7 @@ function renderReviews() {
            <div class="meta">${plural(n)}</div>
          </div>
          <div class="crit">
-           ${keys.map(k => `<div><span>\({CRITERIA[k]}</span><b>\){avg(k).toFixed(1)}</b></div>`).join("")}
+           ${keys.map(k => `<div><span>${CRITERIA[k]}</span><b>${avg(k).toFixed(1)}</b></div>`).join("")}
          </div>`
       : `<div class="meta">Отзывов пока нет. Они появятся, когда бывшие соседи оценят вас.</div>`;
   }
@@ -1480,15 +1470,11 @@ window.addEventListener('storage', () => {
   renderFavorites();
 });
 
-/* =========================
-   ИНИЦИАЛИЗАЦИЯ И СЛУШАТЕЛИ
-   ========================= */
 document.addEventListener("DOMContentLoaded", () => {
   buildPickers();
   renderReviews();
   renderFavorites();
 
-  // Загружаем текущий статус из скрытого поля Thymeleaf
   const currentStatusInput = $('searchStatusInput');
   if (currentStatusInput && currentStatusInput.value) {
     state.status = currentStatusInput.value;
@@ -1496,7 +1482,6 @@ document.addEventListener("DOMContentLoaded", () => {
   
   render();
 
-  // Привязываем обновление верхней карточки к полям ввода
   ['name', 'age', 'uni', 'course', 'bio'].forEach(id => {
     const el = $(id);
     if (el) {
