@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://thymeleaf.org">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -557,58 +557,61 @@ input[type=file] {
 </head>
 
 <body>
+  <form th:action="@{/profile/save}" th:object="${user}" method="post">
+    <!-- Просто скрытый ID для базы данных, препод всегда требует на лабах -->
+    <input type="hidden" th:field="*{id}" />
 
-<div class="wrap">
+    <div class="wrap">
 
-  <div class="header">
-    <a href="index.html">← &nbsp;Назад</a>
-    <span>Профиль</span>
-  </div>
-
-  <h1>Ваш профиль</h1>
-
-  <p class="sub">
-    Профиль увидят потенциальные соседи. Проверенный студент вызывает больше доверия.
-  </p>
-
-  <div class="card">
-    <div class="top">
-
-      <div class="avatar" id="avatar">?</div>
-
-      <div class="top-info">
-
-        <div class="name-line">
-          <span id="viewName">Ваше имя</span>
-
-          <span class="badge" id="badge">
-            ✓ Проверенный студент
-          </span>
-
-          <span class="status-pill" id="statusPill"></span>
-        </div>
-
-        <div class="meta" id="viewMeta">
-          Студент, курс не указан
-        </div>
-
-        <div class="meta" id="viewRating"></div>
-
-        <button
-          class="link-btn"
-          onclick="document.getElementById('photoInput').click()">
-          Загрузить фото
-        </button>
-
-        <input
-          type="file"
-          id="photoInput"
-          accept="image/*">
-
+      <div class="header">
+        <a href="/">← &nbsp;Назад</a>
+        <span>Профиль</span>
       </div>
-    </div>
 
-    <div class="bio-view" id="viewBio"></div>
+      <h1>Ваш профиль</h1>
+
+      <p class="sub">
+        Профиль увидят потенциальные соседи. Проверенный студент вызывает больше доверия.
+      </p>
+
+      <div class="card">
+        <div class="top">
+
+          <div class="avatar" id="avatar">?</div>
+
+          <div class="top-info">
+
+            <div class="name-line">
+              <span id="viewName">Ваше имя</span>
+
+              <span class="badge" id="badge">
+                ✓ Проверенный студент
+              </span>
+
+              <span class="status-pill" id="statusPill"></span>
+            </div>
+
+            <div class="meta" id="viewMeta">
+              Студент, курс не указан
+            </div>
+
+            <div class="meta" id="viewRating"></div>
+
+            <button
+              type="button"
+              class="link-btn"
+              onclick="document.getElementById('photoInput').click()">
+              Загрузить фото
+            </button>
+
+            <input
+              type="file"
+              id="photoInput"
+              accept="image/*">
+
+          </div>
+        </div>
+<div class="bio-view" id="viewBio"></div>
   </div>
 
   <div class="card">
@@ -620,9 +623,11 @@ input[type=file] {
       <div class="field">
         <label for="name">Имя</label>
 
+        <!-- Связываем с полем name в Java -->
         <input
           type="text"
           id="name"
+          th:field="*{name}"
           placeholder="Айгерим"
           maxlength="40">
       </div>
@@ -630,9 +635,11 @@ input[type=file] {
       <div class="field">
         <label for="age">Возраст</label>
 
+        <!-- Связываем с полем age в Java -->
         <input
           type="number"
           id="age"
+          th:field="*{age}"
           placeholder="19"
           min="16"
           max="60">
@@ -650,9 +657,11 @@ input[type=file] {
 
       <label for="uni">Университет</label>
 
+      <!-- Связываем с полем university в Java -->
       <input
         type="text"
         id="uni"
+        th:field="*{university}"
         placeholder="КазНУ им. аль-Фараби"
         maxlength="80">
 
@@ -662,7 +671,8 @@ input[type=file] {
 
       <label for="course">Курс</label>
 
-      <select id="course">
+      <!-- Связываем с полем course в Java (для простоты сохраняем как текст/число) -->
+      <select id="course" th:field="*{course}">
 
         <option value="">
           Выберите курс
@@ -684,11 +694,12 @@ input[type=file] {
           4 курс
         </option>
 
-        <option value="м1">
+        <!-- Магистратуру передаем как текст, в базе подстроится -->
+        <option value="5">
           Магистратура, 1 год
         </option>
 
-        <option value="м2">
+        <option value="6">
           Магистратура, 2 год
         </option>
 
@@ -698,7 +709,8 @@ input[type=file] {
 
   </div>
 
-  <div class="card">
+
+   <div class="card">
 
     <h2>Расскажи о себе</h2>
 
@@ -707,8 +719,10 @@ input[type=file] {
       режим дня, отношение к гостям, чистоте и тишине.
     </p>
 
+    <!-- Привязываем к полю about в Java-модели User -->
     <textarea
       id="bio"
+      th:field="*{about}"
       maxlength="500"
       placeholder="Люблю готовить и ходить в горы по выходным. Учусь допоздна, но тихо. Ищу спокойного и чистоплотного соседа."></textarea>
 
@@ -730,13 +744,14 @@ input[type=file] {
           🧹 Чистота
         </label>
 
-        <select id="cleanliness">
+        <!-- Привязываем к полю cleanliness в Java-модели User -->
+        <select id="cleanliness" th:field="*{cleanliness}">
 
           <option value="tidy">
             Очень аккуратный
           </option>
 
-          <option value="normal" selected>
+          <option value="normal">
             Средний
           </option>
 
@@ -748,19 +763,20 @@ input[type=file] {
 
       </div>
 
-      <div class="preference-item">
+  <div class="preference-item">
 
         <label for="sleep">
           🌙 Режим сна
         </label>
 
-        <select id="sleep">
+        <!-- Привязываем к полю sleepMode в Java -->
+        <select id="sleep" th:field="*{sleepMode}">
 
           <option value="early">
             Жаворонок
           </option>
 
-          <option value="normal" selected>
+          <option value="normal">
             Нейтральный
           </option>
 
@@ -778,13 +794,14 @@ input[type=file] {
           🔊 Уровень шума
         </label>
 
-        <select id="noise">
+        <!-- Привязываем к полю noiseLevel в Java -->
+        <select id="noise" th:field="*{noiseLevel}">
 
           <option value="quiet">
             Предпочитаю тишину
           </option>
 
-          <option value="normal" selected>
+          <option value="normal">
             Умеренно
           </option>
 
@@ -796,19 +813,20 @@ input[type=file] {
 
       </div>
 
-      <div class="preference-item">
+<div class="preference-item">
 
         <label for="guests">
           👥 Гости
         </label>
 
-        <select id="guests">
+        <!-- Привязываем к полю guests в Java -->
+        <select id="guests" th:field="*{guests}">
 
           <option value="rare">
             Редко
           </option>
 
-          <option value="sometimes" selected>
+          <option value="sometimes">
             Иногда
           </option>
 
@@ -826,9 +844,10 @@ input[type=file] {
           🚭 Курение
         </label>
 
-        <select id="smoking">
+        <!-- Привязываем к полю smoking в Java -->
+        <select id="smoking" th:field="*{smoking}">
 
-          <option value="no" selected>
+          <option value="no">
             Не курю
           </option>
 
@@ -850,9 +869,10 @@ input[type=file] {
           🐾 Животные
         </label>
 
-        <select id="pets">
+        <!-- Привязываем к полю pets в Java -->
+        <select id="pets" th:field="*{pets}">
 
-          <option value="no" selected>
+          <option value="no">
             Нет животных
           </option>
 
@@ -874,13 +894,14 @@ input[type=file] {
           💬 Общительность
         </label>
 
-        <select id="social">
+        <!-- Привязываем к полю sociability в Java -->
+        <select id="social" th:field="*{sociability}">
 
           <option value="quiet">
             Предпочитаю тихого соседа
           </option>
 
-          <option value="balanced" selected>
+          <option value="balanced">
             Баланс
           </option>
 
@@ -896,9 +917,12 @@ input[type=file] {
 
   </div>
 
-  <div class="card">
+   <div class="card">
 
     <h2>Статус поиска</h2>
+
+    <!-- Скрытое поле, куда JS будет сохранять выбранный статус для базы данных -->
+    <input type="hidden" id="searchStatusInput" th:field="*{searchStatus}" value="active" />
 
     <div class="chips">
 
@@ -950,6 +974,7 @@ input[type=file] {
       alt="Студенческий билет">
 
     <button
+      type="button"
       class="btn ghost"
       id="idBtn"
       onclick="document.getElementById('idInput').click()">
@@ -1065,14 +1090,16 @@ input[type=file] {
 
   <div class="profile-actions">
 
+    <!-- Меняем тип на submit, чтобы форма отправлялась в Java контроллер -->
     <button
-      class="btn full"
-      onclick="saveProfile()">
+      type="submit"
+      class="btn full">
       Сохранить профиль
     </button>
 
+    <!-- Исправляем локальную ссылку на серверный адрес контроллера -->
     <a
-      href="matches.html"
+      href="/matches"
       class="btn ghost matches-link">
       Посмотреть совпадения
     </a>
@@ -1081,8 +1108,10 @@ input[type=file] {
 
 </div>
 
-<script>
+<!-- Закрываем тег формы, который мы открыли в самом начале body -->
+</form>
 
+<script>
 const $ = id => document.getElementById(id);
 
 const state = {
@@ -1091,13 +1120,10 @@ const state = {
   status: "active"
 };
 
-
 /* =========================
    ОТОБРАЖЕНИЕ ПРОФИЛЯ
    ========================= */
-
 function render() {
-
   const name = $('name').value.trim();
   const age = $('age').value;
   const uni = $('uni').value.trim();
@@ -1107,44 +1133,35 @@ function render() {
     (name || "Ваше имя") +
     (age ? ", " + age : "");
 
-  const courseText = course
-    ? (
-        course.startsWith("м")
-          ? "магистратура, " + course.slice(1) + " год"
-          : course + " курс"
-      )
-    : "";
+  // Подстраиваем вывод курса под числовые значения из Java (5 и 6 - магистратура)
+  let courseText = "";
+  if (course) {
+    if (course === "5") {
+      courseText = "магистратура, 1 год";
+    } else if (course === "6") {
+      courseText = "магистратура, 2 год";
+    } else {
+      courseText = course + " курс";
+    }
+  }
 
   $('viewMeta').textContent =
     [uni, courseText].filter(Boolean).join(" · ")
     || "Студент, курс не указан";
 
-  $('viewBio').textContent =
-    $('bio').value.trim();
-
-  $('bioCount').textContent =
-    $('bio').value.length;
+  $('viewBio').textContent = $('bio').value.trim();
+  $('bioCount').textContent = $('bio').value.length;
 
   renderStatus();
 
+
   const av = $('avatar');
-
   if (state.photo) {
-
-    av.style.backgroundImage =
-      `url(${state.photo})`;
-
+    av.style.backgroundImage = `url(${state.photo})`;
     av.textContent = "";
-
   } else {
-
     av.style.backgroundImage = "";
-
-    av.textContent =
-      name
-        ? name[0].toUpperCase()
-        : "?";
-
+    av.textContent = name ? name[0].toUpperCase() : "?";
   }
 
   $('badge').classList.toggle(
@@ -1153,7 +1170,6 @@ function render() {
   );
 
   const v = $('vState');
-
   v.className =
     "verify-state " +
     (
@@ -1165,16 +1181,9 @@ function render() {
     );
 
   $('vText').textContent = {
-
-    none:
-      "Не подтверждено. Загрузите фото студенческого билета.",
-
-    pending:
-      "Билет на проверке. Обычно это занимает до 24 часов.",
-
-    ok:
-      "Вы проверенный студент. Бейдж виден в вашем профиле."
-
+    none: "Не подтверждено. Загрузите фото студенческого билета.",
+    pending: "Билет на проверке. Обычно это занимает до 24 часов.",
+    ok: "Вы проверенный студент. Бейдж виден в вашем профиле."
   }[state.verified];
 
   $('idBtn').textContent =
@@ -1182,834 +1191,320 @@ function render() {
       ? "Загрузить студенческий билет"
       : "Заменить фото билета";
 
-  $('idBtn').disabled =
-    state.verified === "ok";
-
+  $('idBtn').disabled = state.verified === "ok";
 }
-
 
 /* =========================
    ЗАГРУЗКА ФАЙЛОВ
    ========================= */
-
 function readFile(file, cb) {
-
   if (!file) return;
 
   if (file.size > 5 * 1024 * 1024) {
-
-    alert(
-      "Файл больше 5 МБ. Выберите фото поменьше."
-    );
-
+    alert("Файл больше 5 МБ. Выберите фото поменьше.");
     return;
-
   }
 
   const r = new FileReader();
-
   r.onload = () => cb(r.result);
-
   r.readAsDataURL(file);
-
 }
-
 
 $('photoInput').addEventListener(
   'change',
   e => readFile(
     e.target.files[0],
     data => {
-
       state.photo = data;
-
       render();
-
     }
   )
 );
-
 
 $('idInput').addEventListener(
   'change',
   e => readFile(
     e.target.files[0],
     data => {
-
       $('idPreview').src = data;
-
       $('idPreview').style.display = "block";
-
       state.verified = "pending";
-
       render();
 
       setTimeout(() => {
-
         state.verified = "ok";
-
         render();
-
       }, 3000);
-
     }
   )
 );
 
-
-/* =========================
-   ПОЛЯ ПРОФИЛЯ
-   ========================= */
-
-[
-  'name',
-  'age',
-  'uni',
-  'course',
-  'bio',
-  'cleanliness',
-  'sleep',
-  'noise',
-  'guests',
-  'smoking',
-  'pets',
-  'social'
-].forEach(id => {
-
-  $(id).addEventListener(
-    'input',
-    render
-  );
-
-  $(id).addEventListener(
-    'change',
-    render
-  );
-
-});
-
-
 /* =========================
    СТАТУС
    ========================= */
-
 const STATUSES = {
-
   active: "Активно ищу",
-
   looking: "Присматриваюсь",
-
   found: "Нашёл"
-
 };
 
-
 function setStatus(s) {
-
   state.status = s;
-
+  
+  // Передаем выбранный статус в скрытый инпут Thymeleaf для базы данных
+  const dbInput = $('searchStatusInput');
+  if (dbInput) {
+    dbInput.value = s;
+  }
   renderStatus();
-
 }
 
-
 function renderStatus() {
-
   document
     .querySelectorAll('.chip')
     .forEach(c => {
-
       c.classList.toggle(
         'active',
         c.dataset.s === state.status
       );
-
     });
 
   const p = $('statusPill');
-
-  p.textContent =
-    STATUSES[state.status];
-
-  p.className =
-    "status-pill " +
-    state.status;
-
+  if (p) {
+    p.textContent = STATUSES[state.status];
+    p.className = "status-pill " + state.status;
+  }
 }
-
 
 /* =========================
    ОТЗЫВЫ
    ========================= */
-
 const CRITERIA = {
-
   clean: "Чистота",
-
   punct: "Пунктуальность",
-
   adequacy: "Адекватность"
-
 };
-
 
 const load = (k, d) => {
-
   try {
-
-    const v =
-      JSON.parse(
-        localStorage.getItem(k)
-      );
-
+    const v = JSON.parse(localStorage.getItem(k));
     return v == null ? d : v;
-
   } catch (e) {
-
     return d;
-
   }
-
 };
-
 
 const store = (k, v) => {
-
   try {
-
-    localStorage.setItem(
-      k,
-      JSON.stringify(v)
-    );
-
+    localStorage.setItem(k, JSON.stringify(v));
   } catch (e) {}
-
 };
 
-
-let reviews =
-  load("flatmateReviews", []);
-
-let favorites =
-  load("flatmateFavorites", []);
+let reviews = load("flatmateReviews", []);
+let favorites = load("flatmateFavorites", []);
 
 
 const draft = {
-
   clean: 0,
-
   punct: 0,
-
   adequacy: 0
-
 };
 
-
 function plural(n) {
-
   const a = n % 10;
   const b = n % 100;
-
-  return n +
-    (
-      a === 1 &&
-      b !== 11
-        ? " отзыв"
-        : (
-            a >= 2 &&
-            a <= 4 &&
-            (b < 10 || b >= 20)
-              ? " отзыва"
-              : " отзывов"
-          )
-    );
-
+  return n + (a === 1 && b !== 11 ? " отзыв" : (a >= 2 && a <= 4 && (b < 10 || b >= 20) ? " отзыва" : " отзывов"));
 }
 
-
-const stars = n =>
-  "★".repeat(Math.round(n)) +
-  "☆".repeat(5 - Math.round(n));
-
+const stars = n => "★".repeat(Math.round(n)) + "☆".repeat(5 - Math.round(n));
 
 function buildPickers() {
-
   document
     .querySelectorAll('.picker')
     .forEach(p => {
-
       for (let i = 1; i <= 5; i++) {
-
-        const b =
-          document.createElement('button');
-
+        const b = document.createElement('button');
         b.type = "button";
-
         b.textContent = "★";
-
-        b.setAttribute(
-          'aria-label',
-          i + " из 5"
-        );
-
+        b.setAttribute('aria-label', i + " из 5");
         b.onclick = () => {
-
           draft[p.dataset.key] = i;
-
           paintPickers();
-
         };
-
         p.appendChild(b);
-
       }
-
     });
-
 }
 
-
 function paintPickers() {
-
   document
     .querySelectorAll('.picker')
     .forEach(p =>
-
-      [
-        ...p.children
-      ].forEach((b, i) =>
-
-        b.classList.toggle(
-          'on',
-          i < draft[p.dataset.key]
-        )
-
+      [...p.children].forEach((b, i) =>
+        b.classList.toggle('on', i < draft[p.dataset.key])
       )
-
     );
-
 }
 
-
 function renderReviews() {
-
   const n = reviews.length;
+  const keys = Object.keys(CRITERIA);
+  const avg = k => reviews.reduce((s, r) => s + r.ratings[k], 0) / n;
+  const total = n ? keys.reduce((s, k) => s + avg(k), 0) / keys.length : 0;
 
-  const keys =
-    Object.keys(CRITERIA);
+  const ratingView = $('viewRating');
+  if (ratingView) {
+    ratingView.textContent = n ? "★ " + total.toFixed(1) + " · " + plural(n) : "Пока нет отзывов";
+  }
 
-  const avg = k =>
-    reviews.reduce(
-      (s, r) => s + r.ratings[k],
-      0
-    ) / n;
+  const summaryView = $('revSummary');
+  if (summaryView) {
+    summaryView.innerHTML = n
+      ? `<div class="big">${total.toFixed(1)}</div>
+         <div>
+           <div class="stars">${stars(total)}</div>
+           <div class="meta">${plural(n)}</div>
+         </div>
+         <div class="crit">
+           ${keys.map(k => `<div><span>\({CRITERIA[k]}</span><b>\){avg(k).toFixed(1)}</b></div>`).join("")}
+         </div>`
+      : `<div class="meta">Отзывов пока нет. Они появятся, когда бывшие соседи оценят вас.</div>`;
+  }
 
-  const total = n
-    ? keys.reduce(
-        (s, k) => s + avg(k),
-        0
-      ) / keys.length
-    : 0;
-
-  $('viewRating').textContent = n
-    ? "★ " +
-      total.toFixed(1) +
-      " · " +
-      plural(n)
-    : "Пока нет отзывов";
-
-  $('revSummary').innerHTML = n
-    ? `
-      <div class="big">
-        ${total.toFixed(1)}
-      </div>
-
-      <div>
-        <div class="stars">
-          ${stars(total)}
-        </div>
-
-        <div class="meta">
-          ${plural(n)}
-        </div>
-      </div>
-
-      <div class="crit">
-
-        ${
-          keys.map(k => `
-            <div>
-              <span>${CRITERIA[k]}</span>
-              <b>${avg(k).toFixed(1)}</b>
-            </div>
-          `).join("")
-        }
-
-      </div>
-    `
-    : `
-      <div class="meta">
-        Отзывов пока нет. Они появятся,
-        когда бывшие соседи оценят вас.
-      </div>
-    `;
-
-  const list =
-    $('revList');
-
+  const list = $('revList');
+  if (!list) return;
   list.textContent = "";
 
   reviews
     .slice()
     .reverse()
     .forEach(r => {
-
-      const d =
-        document.createElement('div');
-
+      const d = document.createElement('div');
       d.className = "rev";
-
-      const h =
-        document.createElement('div');
-
+      const h = document.createElement('div');
       h.className = "rev-head";
-
-      const a =
-        document.createElement('b');
-
-      a.textContent =
-        r.author;
-
-      const s =
-        document.createElement('span');
-
+      const a = document.createElement('b');
+      a.textContent = r.author;
+      const s = document.createElement('span');
       s.className = "stars";
-
-      s.textContent =
-        stars(
-          (
-            r.ratings.clean +
-            r.ratings.punct +
-            r.ratings.adequacy
-          ) / 3
-        );
-
+      s.textContent = stars((r.ratings.clean + r.ratings.punct + r.ratings.adequacy) / 3);
       h.append(a, s);
-
       d.append(h);
 
       if (r.text) {
-
-        const t =
-          document.createElement('p');
-
-        t.textContent =
-          r.text;
-
+        const t = document.createElement('p');
+        t.textContent = r.text;
         d.append(t);
-
       }
-
       list.append(d);
-
     });
-
 }
 
-
 function submitReview() {
-
-  if (
-    Object
-      .values(draft)
-      .some(v => !v)
-  ) {
-
-    $('revErr').textContent =
-      "Оцените все три критерия.";
-
+  if (Object.values(draft).some(v => !v)) {
+    $('revErr').textContent = "Оцените все три критерия.";
     return;
-
   }
-
   $('revErr').textContent = "";
 
   reviews.push({
-
-    author:
-      $('revAuthor').value.trim()
-      || "Бывший сосед",
-
-    ratings: {
-      ...draft
-    },
-
-    text:
-      $('revText').value.trim(),
-
-    date:
-      Date.now()
-
+    author: $('revAuthor').value.trim() || "Бывший сосед",
+    ratings: { ...draft },
+    text: $('revText').value.trim(),
+    date: Date.now()
   });
 
-  store(
-    "flatmateReviews",
-    reviews
-  );
-
-  Object
-    .keys(draft)
-    .forEach(
-      k => draft[k] = 0
-    );
-
+  store("flatmateReviews", reviews);
+  Object.keys(draft).forEach(k => draft[k] = 0);
   $('revAuthor').value = "";
-
   $('revText').value = "";
-
   paintPickers();
-
   renderReviews();
-
 }
-
 
 /* =========================
    ИЗБРАННОЕ
    ========================= */
-
 function toggleFavorite(p) {
-
-  favorites =
-    load(
-      "flatmateFavorites",
-      []
-    );
-
-  const i =
-    favorites.findIndex(
-      x => x.id === p.id
-    );
-
+  favorites = load("flatmateFavorites", []);
+  const i = favorites.findIndex(x => x.id === p.id);
   if (i >= 0) {
-
     favorites.splice(i, 1);
-
   } else {
-
     favorites.push(p);
-
   }
-
-  store(
-    "flatmateFavorites",
-    favorites
-  );
-
+  store("flatmateFavorites", favorites);
   renderFavorites();
-
   return i < 0;
-
 }
 
-
 function renderFavorites() {
-
-  const box =
-    $('favList');
-
+  const box = $('favList');
+  if (!box) return;
   box.textContent = "";
 
   if (!favorites.length) {
-
-    box.innerHTML =
-      '<div class="meta">Пока пусто. Нажимайте ♡ на карточках в подборе, и профили появятся здесь.</div>';
-
+    box.innerHTML = '<div class="meta">Пока пусто. Нажимайте ♡ на карточках в подборе, и профили появятся здесь.</div>';
     return;
-
   }
 
   favorites.forEach(f => {
-
-    const row =
-      document.createElement('div');
-
+    const row = document.createElement('div');
     row.className = "fav";
-
-    const info =
-      document.createElement('div');
-
-    const n =
-      document.createElement('b');
-
-    n.textContent =
-      f.name;
-
-    const m =
-      document.createElement('span');
-
+    const info = document.createElement('div');
+    const n = document.createElement('b');
+    n.textContent = f.name;
+    const m = document.createElement('span');
     m.className = "meta";
-
-    m.textContent =
-      [
-        f.uni,
-        f.course
-          ? f.course + " курс"
-          : ""
-      ]
-      .filter(Boolean)
-      .join(" · ");
-
+    m.textContent = [f.uni, f.course ? f.course + " курс" : ""].filter(Boolean).join(" · ");
     info.append(n, m);
 
-    const btn =
-      document.createElement('button');
-
+    const btn = document.createElement('button');
     btn.type = "button";
-
-    btn.className =
-      "link-btn";
-
-    btn.style.marginTop =
-      "0";
-
-    btn.textContent =
-      "Убрать";
-
+    btn.className = "link-btn";
+    btn.style.marginTop = "0";
+    btn.textContent = "Убрать";
     btn.onclick = () => {
-
-      favorites =
-        favorites.filter(
-          x => x.id !== f.id
-        );
-
-      store(
-        "flatmateFavorites",
-        favorites
-      );
-
+      favorites = favorites.filter(x => x.id !== f.id);
+      store("flatmateFavorites", favorites);
       renderFavorites();
-
     };
 
-    row.append(
-      info,
-      btn
-    );
-
+    row.append(info, btn);
     box.append(row);
-
   });
-
 }
 
-
-window.addEventListener(
-  'storage',
-  () => {
-
-    favorites =
-      load(
-        "flatmateFavorites",
-        []
-      );
-
-    renderFavorites();
-
-  }
-);
-
+window.addEventListener('storage', () => {
+  favorites = load("flatmateFavorites", []);
+  renderFavorites();
+});
 
 /* =========================
-   СОХРАНЕНИЕ ПРОФИЛЯ
+   ИНИЦИАЛИЗАЦИЯ И СЛУШАТЕЛИ
    ========================= */
+document.addEventListener("DOMContentLoaded", () => {
+  buildPickers();
+  renderReviews();
+  renderFavorites();
 
-function saveProfile() {
+  // Загружаем текущий статус из скрытого поля Thymeleaf
+  const currentStatusInput = $('searchStatusInput');
+  if (currentStatusInput && currentStatusInput.value) {
+    state.status = currentStatusInput.value;
+  }
+  
+  render();
 
-  let ok = true;
-
-  [
-    'name',
-    'age',
-    'uni',
-    'course'
-  ].forEach(id => {
-
-    const bad =
-      !$(id).value.trim();
-
-    $(id).classList.toggle(
-      'err',
-      bad
-    );
-
-    if (bad) {
-      ok = false;
+  // Привязываем обновление верхней карточки к полям ввода
+  ['name', 'age', 'uni', 'course', 'bio'].forEach(id => {
+    const el = $(id);
+    if (el) {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
     }
-
   });
-
-  if (!ok) return;
-
-  const profile = {
-
-    name:
-      $('name').value.trim(),
-
-    age:
-      $('age').value,
-
-    uni:
-      $('uni').value.trim(),
-
-    course:
-      $('course').value,
-
-    bio:
-      $('bio').value.trim(),
-
-    photo:
-      state.photo,
-
-    verified:
-      state.verified,
-
-    status:
-      state.status,
-
-    preferences: {
-
-      cleanliness:
-        $('cleanliness').value,
-
-      sleep:
-        $('sleep').value,
-
-      noise:
-        $('noise').value,
-
-      guests:
-        $('guests').value,
-
-      smoking:
-        $('smoking').value,
-
-      pets:
-        $('pets').value,
-
-      social:
-        $('social').value
-
-    }
-
-  };
-
-  try {
-
-    localStorage.setItem(
-      "flatmateProfile",
-      JSON.stringify(profile)
-    );
-
-  } catch (e) {
-    alert("Не удалось сохранить профиль в браузере. Изменения не сохранены.");
-    return;
-  }
-
-  location.href =
-    "matches.html";
-
-}
-
-
-/* =========================
-   ЗАГРУЗКА СОХРАНЁННОГО ПРОФИЛЯ
-   ========================= */
-
-try {
-
-  const saved =
-    JSON.parse(
-      localStorage.getItem(
-        "flatmateProfile"
-      ) || "null"
-    );
-
-  if (saved) {
-
-    $('name').value =
-      saved.name || "";
-
-    $('age').value =
-      saved.age || "";
-
-    $('uni').value =
-      saved.uni || "";
-
-    $('course').value =
-      saved.course || "";
-
-    $('bio').value =
-      saved.bio || "";
-
-    state.photo =
-      saved.photo || "";
-
-    state.verified =
-      saved.verified || "none";
-
-    state.status =
-      saved.status || "active";
-
-    if (saved.preferences) {
-
-      $('cleanliness').value =
-        saved.preferences.cleanliness
-        || "normal";
-
-      $('sleep').value =
-        saved.preferences.sleep
-        || "normal";
-
-      $('noise').value =
-        saved.preferences.noise
-        || "normal";
-
-      $('guests').value =
-        saved.preferences.guests
-        || "sometimes";
-
-      $('smoking').value =
-        saved.preferences.smoking
-        || "no";
-
-      $('pets').value =
-        saved.preferences.pets
-        || "no";
-
-      $('social').value =
-        saved.preferences.social
-        || "balanced";
-
-    }
-
-  }
-
-} catch (e) {}
-
-
-/* =========================
-   ЗАПУСК
-   ========================= */
-
-buildPickers();
-
-renderReviews();
-
-renderFavorites();
-
-render();
-
+});
 </script>
 
 </body>
