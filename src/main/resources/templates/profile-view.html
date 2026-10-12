@@ -354,7 +354,25 @@
         </section>
 
         <!-- СОВМЕСТИМОСТЬ -->
-        <section class="card">
+        <section class="card"
+                 th:with="preferenceLabels=${ {
+                              'Чистота': {'tidy': 'Очень аккуратный', 'normal': 'Средний', 'messy': 'Не очень важно'},
+                              'Режим сна': {'early': 'Жаворонок', 'normal': 'Нейтральный', 'late': 'Сова'},
+                              'Уровень шума': {'quiet': 'Предпочитаю тишину', 'normal': 'Умеренно', 'loud': 'Шум не мешает'},
+                              'Гости': {'rare': 'Редко', 'sometimes': 'Иногда', 'often': 'Часто'},
+                              'Курение': {'no': 'Не курю', 'okay': 'Не против', 'yes': 'Курю'},
+                              'Животные': {'no': 'Нет животных', 'okay': 'Не против животных', 'yes': 'Есть животные'},
+                              'Общительность': {'quiet': 'Предпочитаю тихого соседа', 'balanced': 'Баланс', 'social': 'Люблю общительных'}
+                          } },
+                          discussionHints=${ {
+                              'Чистота': 'Договоритесь, как часто убирать общие зоны и кто за что отвечает.',
+                              'Режим сна': 'Обсудите время сна и подъёма, а также тишину и свет, пока другой спит.',
+                              'Уровень шума': 'Договоритесь о громкости музыки, звонков и времени тишины.',
+                              'Гости': 'Обсудите частоту визитов, ночёвки гостей и предупреждение заранее.',
+                              'Курение': 'Договоритесь, где допустимо курить и как избежать запаха в общих зонах.',
+                              'Животные': 'Обсудите проживание с питомцами, возможные аллергии и уход за общими зонами.',
+                              'Общительность': 'Договоритесь о личном времени, общении и границах личного пространства.'
+                          } }">
 
             <div class="eyebrow">FLATMATE MATCHING</div>
 
@@ -419,6 +437,7 @@
                             </p>
 
                             <div th:each="item : ${compatibility.matches}"
+                                 th:with="answers=${preferenceLabels[item.label]}, yourValue=${#strings.toLowerCase(#strings.trim(item.yourAnswer))}"
                                  class="reason">
 
                                 <span class="reason-name"
@@ -427,7 +446,7 @@
 
                                 <span class="reason-detail">
                                     У вас обоих:
-                                    <strong th:text="${item.yourAnswer}"></strong>
+                                    <strong th:text="${answers != null and answers.get(yourValue) != null ? answers.get(yourValue) : item.yourAnswer}"></strong>
                                 </span>
 
                             </div>
@@ -453,6 +472,7 @@
                             </p>
 
                             <div th:each="item : ${compatibility.differences}"
+                                 th:with="answers=${preferenceLabels[item.label]}, yourValue=${#strings.toLowerCase(#strings.trim(item.yourAnswer))}, roommateValue=${#strings.toLowerCase(#strings.trim(item.roommateAnswer))}"
                                  class="reason">
 
                                 <span class="reason-name"
@@ -463,13 +483,15 @@
 
                                     <div>
                                         <strong>Вы:</strong>
-                                        <span th:text="${item.yourAnswer}"></span>
+                                        <span th:text="${answers != null and answers.get(yourValue) != null ? answers.get(yourValue) : item.yourAnswer}"></span>
                                     </div>
 
                                     <div style="margin-top:5px">
                                         <strong>Сосед:</strong>
-                                        <span th:text="${item.roommateAnswer}"></span>
+                                        <span th:text="${answers != null and answers.get(roommateValue) != null ? answers.get(roommateValue) : item.roommateAnswer}"></span>
                                     </div>
+
+                                    <div th:text="${discussionHints[item.label] != null ? discussionHints[item.label] : 'Обсудите ваши предпочтения и договоритесь о правилах совместного проживания.'}"></div>
 
                                 </div>
 
