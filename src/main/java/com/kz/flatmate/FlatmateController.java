@@ -1,13 +1,15 @@
+
 package com.kz.flatmate;
 
 import com.kz.flatmate.model.User;
 import com.kz.flatmate.repository.UserRepository;
+import com.kz.flatmate.model.ChatMessage;
+import com.kz.flatmate.repository.ChatMessageRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import com.kz.flatmate.model.ChatMessage;
-import com.kz.flatmate.repository.ChatMessageRepository;
 
 @Controller
 public class FlatmateController {
@@ -16,16 +18,21 @@ public class FlatmateController {
     private UserRepository userRepository;
 
     @Autowired
-private ChatMessageRepository chatMessageRepository;
+    private ChatMessageRepository chatMessageRepository;
+
+    // Сервис для расчёта совместимости соседей
+    @Autowired
+    private CompatibilityService compatibilityService;
 
     @GetMapping("/")
-    public String showIndex() { 
-        return "index"; 
+    public String showIndex() {
+        return "index";
     }
 
     @GetMapping("/profile")
     public String showProfile(Model model) {
         java.util.List<User> users = userRepository.findAll();
+
         if (!users.isEmpty()) {
             model.addAttribute("user", users.get(0));
         } else {
@@ -40,6 +47,7 @@ private ChatMessageRepository chatMessageRepository;
             defaultUser.setSearchStatus("active");
             model.addAttribute("user", defaultUser);
         }
+
         return "profile";
     }
 
@@ -47,6 +55,7 @@ private ChatMessageRepository chatMessageRepository;
     public String saveProfile(@ModelAttribute("user") User user) {
         try {
             userRepository.save(user);
+
             System.out.println("=============================================");
             System.out.println("=== АНКЕТА СТУДЕНТА ЗАПИСАНА В POSTGRESQL ===");
             System.out.println("=============================================");
@@ -55,6 +64,7 @@ private ChatMessageRepository chatMessageRepository;
             System.out.println("Университет: " + user.getUniversity());
             System.out.println("Критерии (Сон): " + user.getSleepMode());
             System.out.println("=============================================");
+
             return "redirect:/matches";
         } catch (Exception e) {
             return "redirect:/profile?error";
@@ -67,69 +77,91 @@ private ChatMessageRepository chatMessageRepository;
         return "matches";
     }
 
-    
+    // Профиль соседа с анализом совместимости
     @GetMapping("/profile/view/{id}")
     public String viewProfile(@PathVariable Long id, Model model) {
+
+        User roommate = userRepository.findById(id).orElse(null);
+
+        if (roommate == null) {
+            return "redirect:/matches";
+        }
+
+        model.addAttribute("profileUser", roommate);
+
+        // Временная логика MVP:
+        // первую анкету считаем текущим пользователем
+        User currentUser = userRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        if (currentUser != null &&
+            !currentUser.getId().equals(roommate.getId())) {
+
+            CompatibilityService.Result result =
+                    compatibilityService.compare(
+                            currentUser, roommate
+                    );
+
+            model.addAttribute("compatibility", result);
+            model.addAttribute("currentUser", currentUser);
+        }
+
+        return "profile-view";
+    }
+
+    @GetMapping("/chat/{id}")
+    public String showChat(@PathVariable Long id, Model model) {
+
         User user = userRepository.findById(id).orElse(null);
 
         if (user == null) {
             return "redirect:/matches";
         }
 
-        model.addAttribute("profileUser", user);
-        return "profile-view";
+        model.addAttribute("chatUser", user);
+
+        java.util.List<ChatMessage> messages =
+                chatMessageRepository
+                        .findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(
+                                user.getId(), user.getId(),
+                                user.getId(), user.getId()
+                        );
+
+        model.addAttribute("messages", messages);
+        return "chat";
     }
 
-   
+    @PostMapping("/chat/{id}/send")
+    public String sendMessage(
+            @PathVariable Long id,
+            @RequestParam String content) {
 
-@GetMapping("/chat/{id}")
-public String showChat(@PathVariable Long id, Model model) {
-    User user = userRepository.findById(id).orElse(null);
+        if (content == null || content.trim().isEmpty()) {
+            return "redirect:/chat/" + id;
+        }
 
-    if (user == null) {
-        return "redirect:/matches";
-    }
+        User receiver = userRepository.findById(id).orElse(null);
 
-    model.addAttribute("chatUser", user);
+        User sender = userRepository.findAll()
+                .stream()
+                .findFirst()
+                .orElse(null);
 
-    java.util.List<ChatMessage> messages =
-            chatMessageRepository
-                    .findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(
-                            user.getId(), user.getId(),
-                            user.getId(), user.getId()
-                    );
+        if (receiver == null || sender == null
+                || sender.getId().equals(receiver.getId())) {
+            return "redirect:/matches";
+        }
 
-    model.addAttribute("messages", messages);
-    return "chat";
-}
+        ChatMessage message = new ChatMessage();
+        message.setSenderId(sender.getId());
+        message.setReceiverId(receiver.getId());
+        message.setContent(content.trim());
+        message.setSentAt(java.time.LocalDateTime.now());
 
-@PostMapping("/chat/{id}/send")
-public String sendMessage(
-        @PathVariable Long id,
-        @RequestParam String content) {
+        chatMessageRepository.save(message);
 
-    if (content == null || content.trim().isEmpty()) {
         return "redirect:/chat/" + id;
     }
-
-    User receiver = userRepository.findById(id).orElse(null);
-    User sender = userRepository.findAll().stream()
-            .findFirst()
-            .orElse(null);
-
-    if (receiver == null || sender == null
-            || sender.getId().equals(receiver.getId())) {
-        return "redirect:/matches";
-    }
-
-    ChatMessage message = new ChatMessage();
-    message.setSenderId(sender.getId());
-    message.setReceiverId(receiver.getId());
-    message.setContent(content.trim());
-    message.setSentAt(java.time.LocalDateTime.now());
-
-    chatMessageRepository.save(message);
-
-    return "redirect:/chat/" + id;
-}
 }

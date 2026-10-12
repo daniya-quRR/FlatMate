@@ -1,423 +1,707 @@
 <!DOCTYPE html>
-<html lang="ru">
+
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FlatMate — Ваши совпадения</title>
-    <style>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FlatMate — Ваши совпадения</title>
+
+    <style>
+
         * {
+
             box-sizing: border-box;
+
             margin: 0;
+
             padding: 0;
+
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
             -webkit-font-smoothing: antialiased;
+
         }
+
+
 
         body {
+
             background-color: #F6F4EB;
+
             color: #171513;
+
             min-height: 100vh;
+
             display: flex;
+
             justify-content: center;
+
             align-items: center;
+
             padding: 40px;
+
         }
 
+
+
         .matches-container {
+
             width: 100%;
+
             max-width: 960px;
+
             display: grid;
+
             grid-template-columns: 280px 1fr; /* Левая колонка для заголовка, правая — для ленты */
+
             gap: 50px;
+
             align-items: start;
+
         }
+
+
+
 
 
         .left-panel {
+
             position: sticky;
+
             top: 40px;
+
         }
+
+
 
         .meta-tag {
+
             font-size: 11px;
+
             font-weight: 700;
+
             text-transform: uppercase;
+
             letter-spacing: 1.5px;
+
             color: #8A857B;
+
             margin-bottom: 8px;
+
         }
+
+
 
         .page-title {
+
             font-size: 34px;
+
             font-weight: 800;
+
             letter-spacing: -0.5px;
+
             line-height: 1.2;
+
             margin-bottom: 28px;
+
         }
+
+
 
         .profile-btn {
+
             background-color: #FFFFFF;
+
             border: 1px solid #E2DFD5;
+
             padding: 14px 18px;
+
             border-radius: 16px;
+
             display: inline-flex;
+
             align-items: center;
+
             gap: 12px;
+
             text-decoration: none;
+
             color: #171513;
+
             font-weight: 600;
+
             font-size: 14px;
+
             box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+
             transition: all 0.2s;
+
         }
+
+
 
         .profile-btn:hover {
+
             border-color: #295241;
+
             transform: translateY(-1px);
+
         }
 
+
+
         .avatar-mini {
+
             width: 32px;
+
             height: 32px;
+
             border-radius: 50%;
-            background-image: url('https://unsplash.com');
+
+            background: linear-gradient(135deg, #56715E 0%, #243E33 100%);
+
             background-size: cover;
+
             background-position: center;
+
         }
+
+
+
 
 
         .matches-feed {
+
             display: flex;
+
             flex-direction: column;
+
             gap: 20px;
+
             max-height: 85vh;
+
             overflow-y: auto;
+
             padding-right: 10px;
+
             max-width: 440px;
+
         }
+
+
 
         .matches-feed::-webkit-scrollbar { width: 4px; }
+
         .matches-feed::-webkit-scrollbar-track { background: transparent; }
+
         .matches-feed::-webkit-scrollbar-thumb { background: #E2DFD5; border-radius: 10px; }
 
+
+
         .person-card {
+
             background-color: #FFFFFF;
+
             border-radius: 28px;
+
             overflow: hidden;
+
             box-shadow: 0 8px 24px rgba(0,0,0,0.02);
+
             display: flex;
+
             flex-direction: column;
+
             cursor: pointer;
+
             transition: transform 0.2s ease, box-shadow 0.2s ease;
+
             text-decoration: none;
+
             color: inherit;
+
         }
+
+
 
         .person-card:hover {
+
             transform: translateY(-2px);
+
             box-shadow: 0 12px 28px rgba(41, 82, 65, 0.05);
+
         }
+
+
 
         .card-photo-area {
+
             height: 380px;
+
             position: relative;
+
             background-size: cover;
+
             background-position: center center;
+
         }
+
+
 
         .card-photo-area::before {
+
             content: "";
+
             position: absolute;
+
             top: 0; left: 0; right: 0; bottom: 0;
+
             background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.65) 100%);
+
             z-index: 1;
+
         }
+
+
 
         .photo-bottom-overlay {
+
             position: absolute;
+
             bottom: 0;
+
             left: 0;
+
             right: 0;
+
             padding: 24px;
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: flex-end;
+
             z-index: 2;
+
         }
+
+
 
         .person-info {
+
             color: #FFFFFF;
+
         }
+
+
 
         .person-info h2 {
+
             font-size: 24px;
+
             font-weight: 800;
+
             letter-spacing: -0.5px;
+
             margin-bottom: 4px;
+
         }
+
+
 
         .person-info p {
+
             font-size: 13px;
+
             opacity: 0.9;
+
             font-weight: 500;
+
         }
+
+
 
         .badge-percent {
+
             background-color: #FFFFFF;
+
             color: #171513;
+
             width: 58px;
+
             height: 58px;
+
             border-radius: 16px;
+
             display: flex;
+
             flex-direction: column;
+
             align-items: center;
+
             justify-content: center;
+
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+
             flex-shrink: 0;
+
         }
+
+
 
         .badge-percent .num {
+
             font-size: 20px;
+
             font-weight: 800;
+
             line-height: 1;
+
         }
+
+
 
         .badge-percent .sign {
+
             font-size: 10px;
+
             font-weight: 700;
+
             color: #8A857B;
+
             margin-top: 1px;
+
         }
+
+
 
         .card-reason-bar {
+
             padding: 16px 24px;
+
             display: flex;
+
             flex-direction: column;
+
             align-items: stretch;
+
             gap: 12px;
+
             background-color: #FFFFFF;
+
         }
+
+
 
         .preference-list {
+
             list-style: none;
+
             display: flex;
+
             flex-direction: column;
+
             gap: 8px;
+
         }
+
+
 
         .preference-list li {
+
             display: flex;
+
             align-items: flex-start;
+
             gap: 9px;
+
             font-size: 13px;
+
             font-weight: 600;
+
             color: #171513;
+
             line-height: 1.35;
+
         }
+
+
 
         .preference-mark {
+
             width: 16px;
+
             flex-shrink: 0;
+
             color: #295241;
+
             font-weight: 800;
+
         }
+
+
 
         .preference-list .different .preference-mark {
+
             color: #B3402E;
+
         }
+
+
 
         .card-actions {
+
             display: flex;
+
             justify-content: space-between;
+
             align-items: center;
+
         }
+
+
 
         .favorite-button {
+
             border: 0;
+
             padding: 0;
+
             background: none;
+
             color: #295241;
+
             font: inherit;
+
             font-size: 14px;
+
             font-weight: 700;
+
             cursor: pointer;
+
         }
+
+
 
         .favorite-button.is-favorite {
+
             color: #8A3B32;
+
         }
 
+
+
         .arrow-icon {
+
             font-size: 14px;
+
             color: #8A857B;
+
             font-weight: bold;
+
         }
+
     </style>
+
 </head>
+
 <body>
+
+
 
 <div class="matches-container">
 
-    <div class="left-panel">
-        <div class="meta-tag">Ваши совпадения</div>
-        <h1 class="page-title">0 совпадений</h1>
 
-        <div class="sidebar-actions">
-            <!-- Исправляем ссылку на серверный путь /profile -->
-            <a href="profile.html" class="profile-btn">
-                <div class="avatar-mini"></div>
-                <span>Профиль студента</span>
-            </a>
-        </div>
-    </div>
 
-    <div class="matches-feed" id="matchesFeed">
-        <!-- Карточки совпадений создаются автоматически -->
-    </div>
+    <div class="left-panel">
+
+        <div class="meta-tag">Ваши совпадения</div>
+
+        <h1 class="page-title">0 анкет</h1>
+
+
+
+        <div class="sidebar-actions">
+
+            <!-- Исправляем ссылку на серверный путь /profile -->
+
+            <a th:href="@{/profile}" class="profile-btn">
+
+                <div class="avatar-mini"></div>
+
+                <span>Мой профиль</span>
+
+            </a>
+
+        </div>
+
+    </div>
+
+
+
+    <div class="matches-feed" id="matchesFeed">
+
+        <!-- Карточки совпадений создаются автоматически -->
+
+    </div>
+
 </div>
 
-<!-- Скрытый блок Thymeleaf, который переводит список студентов из PostgreSQL в формат JSON для JavaScript -->
+
+
+<!-- Thymeleaf передаёт анкеты из подключённой базы данных в JavaScript -->
+
 <script th:inline="javascript">
-    const dbUsers = /*[[${users}]]*/ [];
+
+    const dbUsers = /*[[${users}]]*/ [];
+
 </script>
+
+
+
 
 
 <script>
-  const $ = id => document.getElementById(id);
+    const dbProfiles = Array.isArray(dbUsers) ? dbUsers : [];
 
-  function toggleFavorite(p) {
-    const k = "flatmateFavorites";
-    let f = JSON.parse(localStorage.getItem(k) || "[]");
-    const i = f.findIndex(x => x.id === p.id);
-    if (i >= 0) f.splice(i, 1); else f.push(p);
-    localStorage.setItem(k, JSON.stringify(f));
-    return i < 0;
-  }
+    // MVP без авторизации: первая сохранённая анкета считается текущей.
+    // Тот же принцип сейчас используется в FlatmateController.viewProfile().
+    const myProfile = dbProfiles.length ? dbProfiles[0] : null;
 
-    const preferenceDefaults = {
-        cleanliness: "normal",
-        sleepMode: "normal",
-        noiseLevel: "normal",
-        guests: "sometimes",
-        smoking: "no",
-        pets: "no",
-        sociability: "balanced"
-    };
-    
-    const preferenceDescriptions = {
-        cleanliness: { match: "Одинаковый уровень чистоты", different: "Разный уровень чистоты" },
-        sleepMode: { match: "Одинаковый режим сна", different: "Разный режим сна" },
-        noiseLevel: { match: "Одинаковый уровень шума", different: "Разный уровень шума" },
-        guests: { match: "Одинаковое отношение к гостям", different: "Разное отношение к гостям" },
-        smoking: { match: "Одинаковое отношение к курению", different: "Разное отношение к курению" },
-        pets: { match: "Одинаковое отношение к животным", different: "Разное отношение к животным" },
-        sociability: { match: "Одинаковый уровень общительности", different: "Разный уровень общительности" }
-    };
-    
-    // Подгружаем сохраненный статус из скрытых полей Thymeleaf
-    const currentProfileInput = document.getElementById('searchStatusInput');
-    
-    const currentPreferences = {
-        cleanliness: document.getElementById('cleanliness') ? document.getElementById('cleanliness').value : "normal",
-        sleepMode: document.getElementById('sleep') ? document.getElementById('sleep').value : "normal",
-        noiseLevel: document.getElementById('noise') ? document.getElementById('noise').value : "normal",
-        guests: document.getElementById('guests') ? document.getElementById('guests').value : "sometimes",
-        smoking: document.getElementById('smoking') ? document.getElementById('smoking').value : "no",
-        pets: document.getElementById('pets') ? document.getElementById('pets').value : "no",
-        sociability: document.getElementById('social') ? document.getElementById('social').value : "balanced"
-    };
+    const fields = [
+        ["cleanliness", "Уровень чистоты"],
+        ["sleepMode", "Режим сна"],
+        ["noiseLevel", "Уровень шума"],
+        ["guests", "Отношение к гостям"],
+        ["smoking", "Отношение к курению"],
+        ["pets", "Отношение к животным"],
+        ["sociability", "Общительность"]
+    ];
 
-    const favoriteIds = new Set(
-        JSON.parse(localStorage.getItem("flatmateFavorites") || "[]").map(favorite => favorite.id)
-    );
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[ch]);
 
-    // Маппим реальных пользователей из базы данных в карточки
-    const roommates = dbUsers.map(user => ({
-        id: user.id,
-        name: user.name || "Студент",
-        age: user.age || 18,
-        uni: user.university || "ВУЗ не указан",
-        location: user.course ? (user.course + " курс") : "Курс не указан",
-        photo: "https://gstatic.com",
-        preferences: {
-            cleanliness: user.cleanliness || "normal",
-            sleepMode: user.sleepMode || "normal",
-            noiseLevel: user.noiseLevel || "normal",
-            guests: user.guests || "sometimes",
-            smoking: user.smoking || "no",
-            pets: user.pets || "no",
-            sociability: user.sociability || "balanced"
+    function calculateCompatibility(roommate) {
+        const results = [];
+        for (const [key, label] of fields) {
+            const yours = String(myProfile?.[key] ?? "").trim();
+            const theirs = String(roommate?.[key] ?? "").trim();
+            // Незаполненные параметры не считаются ни совпадением, ни различием.
+            if (!yours || !theirs) continue;
+            const matched = yours.toLowerCase() === theirs.toLowerCase();
+            results.push({
+                matched,
+                label: matched ? `${label}: совпадает` : `${label}: отличается`
+            });
         }
-    }));
-
-    const matches = roommates.map(roommate => {
-        const matchingPreferences = Object.keys(preferenceDefaults)
-            .filter(key => currentPreferences[key] === roommate.preferences[key]);
+        const matchedCount = results.filter(item => item.matched).length;
         return {
             ...roommate,
-            compatibility: Math.round((matchingPreferences.length / 7) * 100),
-            preferenceResults: Object.keys(preferenceDefaults).map(key => {
-                const matched = currentPreferences[key] === roommate.preferences[key];
-                return {
-                    matched,
-                    label: preferenceDescriptions[key][matched ? "match" : "different"]
-                };
-            })
+            compatibility: results.length
+                ? Math.round(matchedCount * 100 / results.length)
+                : null,
+            preferenceResults: results
         };
-    }).sort((first, second) => second.compatibility - first.compatibility);
+    }
+
+    const matches = (myProfile
+        ? dbProfiles.filter(user => user.id != null && String(user.id) !== String(myProfile.id))
+        : []
+    ).map(calculateCompatibility).sort((a, b) => (b.compatibility ?? -1) - (a.compatibility ?? -1));
 
     const matchCount = matches.length;
-    const countWord = matchCount === 1 ? "совпадение" : matchCount >= 2 && matchCount <= 4 ? "совпадения" : "совпадений";
+    const countWord = matchCount === 1 ? "анкета" :
+        matchCount >= 2 && matchCount <= 4 ? "анкеты" : "анкет";
     document.querySelector(".page-title").textContent = `${matchCount} ${countWord}`;
-    
-        document.getElementById("matchesFeed").innerHTML = matches.map(roommate => {
-        const isFavorite = favoriteIds.has(roommate.id);
-        return `
-<a href="/profile/view/${roommate.id}" class="person-card">                <div class="card-photo-area" style="background-image: url('\${roommate.photo}');">
-                    <div class="photo-bottom-overlay">
-                        <div class="person-info">
-                            <h2>${roommate.name}, ${roommate.age}</h2>
-                            <p>📍 ${roommate.location} · ${roommate.uni}</p>
-                        </div>
-                        <div class="badge-percent">
-                            <span class="num">${roommate.compatibility}</span>
-                            <span class="sign">%</span>
+
+    const feed = document.getElementById("matchesFeed");
+    if (matchCount === 0) {
+        feed.innerHTML = `<div style="background:white;border:1px solid #E2DFD5;border-radius:22px;padding:26px;line-height:1.7;color:#59574F">
+            <strong style="color:#171513">Пока нет анкет соседей</strong><p style="margin-top:10px">Для сравнения нужны как минимум две сохранённые анкеты. Создайте анкету, затем добавьте вторую тестовую анкету в локальную базу.</p>
+            <a href="/profile" style="color:#295241;display:inline-block;margin-top:12px;font-weight:700">Открыть мою анкету →</a>
+        </div>`;
+    } else {
+        let favorites = [];
+        try {
+            favorites = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
+            if (!Array.isArray(favorites)) favorites = [];
+        } catch (e) { favorites = []; }
+        const favoriteIds = new Set(favorites.map(f => String(f.id)));
+
+        feed.innerHTML = matches.map(roommate => {
+            const isFavorite = favoriteIds.has(String(roommate.id));
+            const name = escapeHtml(roommate.name || "Студент");
+            const age = roommate.age == null ? "" : `, ${escapeHtml(roommate.age)}`;
+            const course = escapeHtml(roommate.course ? roommate.course + " курс" : "Курс не указан");
+            const uni = escapeHtml(roommate.university || "ВУЗ не указан");
+            const score = roommate.compatibility == null ? "—" : roommate.compatibility;
+            const reasons = roommate.preferenceResults.length
+                ? roommate.preferenceResults.map(result => `
+                    <li class="${result.matched ? "matched" : "different"}">
+                        <span class="preference-mark">${result.matched ? "✓" : "✗"}</span>
+                        <span>${escapeHtml(result.label)}</span>
+                    </li>`).join("")
+                : '<li>Недостаточно данных для сравнения</li>';
+
+            return `
+                <a href="/profile/view/${encodeURIComponent(roommate.id)}" class="person-card">
+                    <div class="card-photo-area">
+                        <div class="photo-bottom-overlay">
+                            <div class="person-info">
+                                <h2>${name}${age}</h2>
+                                <p>📍 ${course} · ${uni}</p>
+                            </div>
+                            <div class="badge-percent">
+                                <span class="num">${score}</span>
+                                <span class="sign">${roommate.compatibility == null ? "нет данных" : "%"}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="card-reason-bar">
-                    <ul class="preference-list">
-                        ${roommate.preferenceResults.map(result => `
-                            <li class="${result.matched ? "matched" : "different"}">
-                                <span class="preference-mark">${result.matched ? "✓" : "✗"}</span>
-                                <span>${result.label}</span>
-                            </li>
-                        `).join("")}
-                    </ul>
-                    <div class="card-actions">
-                        <button type="button" class="favorite-button${isFavorite ? " is-favorite" : ""}" data-roommate-id="${roommate.id}" aria-pressed="${isFavorite}">
-                            ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
-                        </button>
-                        <span class="arrow-icon">➔</span>
+                    <div class="card-reason-bar">
+                        <ul class="preference-list">${reasons}</ul>
+                        <div class="card-actions">
+                            <button type="button" class="favorite-button${isFavorite ? " is-favorite" : ""}"
+                                data-roommate-id="${escapeHtml(roommate.id)}" aria-pressed="${isFavorite}">
+                                ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
+                            </button>
+                            <span class="arrow-icon">➔</span>
+                        </div>
                     </div>
-                </div>
-            </a>
-        `;
-    }).join("");
+                </a>`;
+        }).join("");
 
-
-    document.querySelectorAll(".favorite-button").forEach(button => {
-        button.addEventListener("click", event => {
-            event.preventDefault();
-            event.stopPropagation();
-            const roommate = matches.find(person => person.id === Number(button.dataset.roommateId));
-            const isFavorite = toggleFavorite(roommate);
-            button.classList.toggle("is-favorite", isFavorite);
-            button.setAttribute("aria-pressed", isFavorite);
-            button.textContent = isFavorite ? "♥ В избранном" : "♡ В избранное";
+        document.querySelectorAll(".favorite-button").forEach(button => {
+            button.addEventListener("click", event => {
+                event.preventDefault();
+                event.stopPropagation();
+                const roommate = matches.find(person => String(person.id) === button.dataset.roommateId);
+                if (!roommate) return;
+                let items = [];
+                try {
+                    items = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
+                    if (!Array.isArray(items)) items = [];
+                } catch (e) { items = []; }
+                const index = items.findIndex(item => String(item.id) === String(roommate.id));
+                const isFavorite = index < 0;
+                if (isFavorite) items.push({ id: roommate.id, name: roommate.name });
+                else items.splice(index, 1);
+                localStorage.setItem("flatmateFavorites", JSON.stringify(items));
+                button.classList.toggle("is-favorite", isFavorite);
+                button.setAttribute("aria-pressed", String(isFavorite));
+                button.textContent = isFavorite ? "♥ В избранном" : "♡ В избранное";
+            });
         });
-    });
+    }
 </script>
 
+
+
 </body>
+
 </html>
