@@ -127,6 +127,8 @@ public class FlatmateController {
         // Вытаскиваем всех пользователей для ленты подбора
         java.util.List<User> allUsers = userRepository.findAll();
         model.addAttribute("users", allUsers);
+        System.out.println("Всего пользователей: " + allUsers.size());
+        for (User u : allUsers) {System.out.println("ID: " + u.getId() + ", имя: " + u.getName());}
 
         // ВЫТАСКИВАЕМ ВСЕХ, С КЕМ ЕСТЬ ДИАЛОГ (для панели сообщений)
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
