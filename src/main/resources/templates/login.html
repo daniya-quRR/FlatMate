@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlatMate — Аккаунт</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; }
+        body { background: #F6F4EB; color: #171513; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .auth-container { background: #ffffff; border-radius: 24px; padding: 35px; width: 100%; max-width: 380px; box-shadow: 0 8px 30px rgba(0,0,0,0.02); }
+        h2 { font-size: 24px; font-weight: 800; color: #295241; text-align: center; margin-bottom: 24px; letter-spacing: -0.5px; }
+        .tabs { display: flex; gap: 10px; margin-bottom: 24px; background: #FBFAF6; padding: 6px; border-radius: 12px; border: 1px solid #E2DFD5; }
+        .tab-btn { flex: 1; border: none; background: none; padding: 10px; font-size: 14px; font-weight: 700; color: #8A857B; cursor: pointer; border-radius: 8px; transition: all 0.15s; }
+        .tab-btn.active { background: #295241; color: #ffffff; }
+        .auth-form { display: none; flex-direction: column; gap: 16px; }
+        .auth-form.active { display: flex; }
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        label { font-size: 12px; font-weight: 600; color: #8A857B; }
+        input { height: 50px; border-radius: 12px; border: 1px solid #E2DFD5; background: #FBFAF6; padding: 0 16px; font-size: 15px; color: #171513; outline: none; width: 100%; }
+        input:focus { border-color: #295241; }
+        .btn { background: #295241; color: #ffffff; border: none; border-radius: 30px; padding: 16px; font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.15s; margin-top: 8px; text-align: center; width: 100%; }
+        .btn:hover { background: #1F3D31; }
+        .msg { font-size: 13px; text-align: center; display: none; padding: 10px; border-radius: 10px; font-weight: 600; }
+        .msg.err { display: block; background: #FFF0EE; color: #B3402E; }
+        .msg.ok { display: block; background: #E3EEE8; color: #295241; }
+    </style>
+</head>
+<body>
+
+<div class="auth-container">
+    <h2>FlatMate</h2>
+    
+    <!-- Переключатель вкладок Вход / Регистрация -->
+    <div class="tabs">
+        <button type="button" class="tab-btn active" onclick="switchTab('login')">Вход</button>
+        <button type="button" class="tab-btn" onclick="switchTab('register')">Регистрация</button>
+    </div>
+
+    <!-- Блок вывода сообщений об ошибках -->
+    <div id="authAlert" class="msg"></div>
+
+    <!-- ФОРМА ВХОДА (Шлёт данные на твой бэкэнд) -->
+    <form id="loginForm" class="auth-form active" onsubmit="handleAuth(event, '/api/auth/login')">
+        <div class="field">
+            <label>Электронная почта</label>
+            <input type="email" name="email" placeholder="example@stud.kz" required>
+        </div>
+        <div class="field">
+            <label>Пароль</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn">Войти в аккаунт</button>
+    </form>
+
+    <!-- ФОРМА РЕГИСТРАЦИИ (Создаёт нового студента в PostgreSQL) -->
+    <form id="registerForm" class="auth-form" onsubmit="handleAuth(event, '/api/auth/register')">
+        <div class="field">
+            <label>Ваше имя</label>
+            <input type="text" name="name" placeholder="Айгерим" required>
+        </div>
+        <div class="field">
+            <label>Электронная почта</label>
+            <input type="email" name="email" placeholder="example@stud.kz" required>
+        </div>
+        <div class="field">
+            <label>Придумайте пароль</label>
+            <input type="password" name="password" placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn">Создать профиль</button>
+    </form>
+</div>
+
+<script>
+    // Переключение между вкладками формы
+    function switchTab(type) {
+        document.querySelectorAll('.tab-btn').forEach((btn, idx) => {
+            btn.classList.toggle('active', (type === 'login' && idx === 0) || (type === 'register' && idx === 1));
+        });
+        document.getElementById('loginForm').classList.toggle('active', type === 'login');
+        document.getElementById('registerForm').classList.toggle('active', type === 'register');
+        document.getElementById('authAlert').className = 'msg';
+    }
+
+    // Универсальная отправка запросов на твой бэкэнд через FormData
+    function handleAuth(event, url) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const alertBox = document.getElementById('authAlert');
+
+        // Превращаем данные формы в параметры запроса URLSearchParams
+        const params = new URLSearchParams();
+        for (const pair of formData) {
+            params.append(pair[0], pair[1]);
+        }
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: params
+        })
+        .then(res => res.text())
+        .then(status => {
+            if (status === 'ok') {
+                if (url.includes('register')) {
+                    alertBox.textContent = "Регистрация успешна! Теперь войдите.";
+                    alertBox.className = "msg ok";
+                    form.reset();
+                    setTimeout(() => switchTab('login'), 1500);
+                } else {
+                    // При успешном входе бэкэнд запомнил сессию, летим в профиль!
+                    window.location.href = "/profile";
+                }
+            } else if (status === 'exists') {
+                alertBox.textContent = "Пользователь с таким email уже существует!";
+                alertBox.className = "msg err";
+            } else {
+                alertBox.textContent = "Неверный логин или пароль!";
+                alertBox.className = "msg err";
+            }
+        });
+    }
+</script>
+</body>
+</html>
