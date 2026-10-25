@@ -666,7 +666,7 @@
         feed.innerHTML = matches.map(roommate => {
             const isFavorite = favoriteIds.has(String(roommate.id));
             const name = escapeHtml(roommate.name || "Студент");
-            const age = roommate.age == null ? "" : `, \${escapeHtml(roommate.age)}`;
+            const age = roommate.age == null ? "" : `, ${escapeHtml(roommate.age)}`;
             const course = escapeHtml(roommate.course ? `${roommate.course} курс` : "Курс не указан");
             const uni = escapeHtml(roommate.university || "ВУЗ не указан");
             const score = roommate.compatibility ?? "—";
@@ -678,36 +678,35 @@
                 ? matchedReasons.map(result => `
                     <li class="matched">
                         <span class="preference-mark">✓</span>
-                        <span>\${escapeHtml(result.label)}</span>
+                        <span>${escapeHtml(result.label)}</span>
                     </li>
                 `).join("")
                 : "<li>Базовая совместимость студентов</li>";
 
-            // СТУДЕНЧЕСКИЙ ФИКС: Экранируем знаки доллара слэшами (\$), чтобы Thymeleaf их не стирал
             return `
-                <a href="/profile/view/\${encodeURIComponent(roommate.id)}" class="person-card">
+                <a href="/profile/view/${encodeURIComponent(roommate.id)}" class="person-card">
                     <div class="card-photo-area">
                         <div class="photo-bottom-overlay">
                             <div class="person-info">
-                                <h2>\${name}\${age}</h2>
-                                <p>📍 \${course} · \${uni}</p>
+                                <h2>${name}${age}</h2>
+                                <p>📍 ${course} · ${uni}</p>
                             </div>
                             <div class="badge-percent">
-                                <span class="num">\${score}</span>
-                                <span class="sign">\${roommate.compatibility == null ? "нет данных" : "%"}</span>
+                                <span class="num">${score}</span>
+                                <span class="sign">${roommate.compatibility == null ? "нет данных" : "%"}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="card-reason-bar">
-                        <ul class="preference-list">\${reasons}</ul>
+                        <ul class="preference-list">${reasons}</ul>
                         <div class="card-actions">
                             <button
                                 type="button"
-                                class="favorite-button\${isFavorite ? " is-favorite" : ""}"
-                                data-roommate-id="\${escapeHtml(roommate.id)}"
-                                aria-pressed="\${isFavorite}">
-                                \${isFavorite ? "♥ В избранном" : "♡ В избранное"}
+                                class="favorite-button${isFavorite ? " is-favorite" : ""}"
+                                data-roommate-id="${escapeHtml(roommate.id)}"
+                                aria-pressed="${isFavorite}">
+                                ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
                             </button>
                             <span class="arrow-icon">➔</span>
                         </div>
