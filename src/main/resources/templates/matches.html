@@ -562,26 +562,25 @@
         "'": "&#39;"
     })[ch]);
 
+    
     function calculateCompatibility(roommate) {
         const results = [];
+        let matchedCount = 0;
 
         for (const [key, label] of fields) {
-            const yours = String(myProfile?.[key] ?? "").trim();
-            const theirs = String(roommate?.[key] ?? "").trim();
+            const yours = String(myProfile?.[key] ?? "").trim().toLowerCase();
+            const theirs = String(roommate?.[key] ?? "").trim().toLowerCase();
 
             if (!yours || !theirs) continue;
 
-            const matched = yours.toLowerCase() === theirs.toLowerCase();
+            const matched = yours === theirs;
+            if (matched) matchedCount++;
 
             results.push({
                 matched,
-                label: matched
-                    ? `${label}: совпадает`
-                    : `${label}: отличается`
+                label: `${label}: ${matched ? "совпадает" : "отличается"}`
             });
         }
-
-        const matchedCount = results.filter(item => item.matched).length;
 
         return {
             ...roommate,
@@ -592,41 +591,25 @@
         };
     }
 
-    // Исключаем текущего пользователя из списка
-    const matches = (
-        myProfile
-            ? dbProfiles.filter(user =>
-                user.id != null &&
-                String(user.id) !== String(myProfile.id)
-            )
-            : []
-    )
+    const matches = dbProfiles
+        .filter(user => user.id != null && String(user.id) !== String(myProfile?.id))
         .map(calculateCompatibility)
-        .sort((a, b) =>
-            (b.compatibility ?? -1) - (a.compatibility ?? -1)
-        );
+        .sort((a, b) => (b.compatibility ?? -1) - (a.compatibility ?? -1));
 
     const matchCount = matches.length;
+    const countWord = matchCount === 1 ? "анкета"
+        : matchCount >= 2 && matchCount <= 4 ? "анкеты"
+        : "анкет";
 
-    const countWord = matchCount === 1
-        ? "анкета"
-        : matchCount >= 2 && matchCount <= 4
-            ? "анкеты"
-            : "анкет";
-
-    document.querySelector(".page-title").textContent =
-        `${matchCount} ${countWord}`;
+    document.querySelector(".page-title").textContent = `${matchCount} ${countWord}`;
 
     const feed = document.getElementById("matchesFeed");
 
-    if (matchCount === 0) {
+    if (!matchCount) {
         feed.innerHTML = `
             <div style="background:white;border:1px solid #E2DFD5;border-radius:22px;padding:26px;line-height:1.7;color:#59574F">
                 <strong style="color:#171513">Пока нет анкет соседей</strong>
-                <p style="margin-top:10px">
-                    Для сравнения нужны как минимум две сохранённые анкеты.
-                    Создайте анкету, затем добавьте вторую тестовую анкету в локальную базу.
-                </p>
+                <p style="margin-top:10px">Для сравнения нужны как минимум две сохранённые анкеты в базе данных.</p>
                 <a href="/profile" style="color:#295241;display:inline-block;margin-top:12px;font-weight:700">
                     Открыть мою анкету →
                 </a>
@@ -636,54 +619,30 @@
         let favorites = [];
 
         try {
-            favorites = JSON.parse(
-                localStorage.getItem("flatmateFavorites") || "[]"
-            );
-
-            if (!Array.isArray(favorites)) {
-                favorites = [];
-            }
-        } catch (e) {
+            favorites = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
+            if (!Array.isArray(favorites)) favorites = [];
+        } catch {
             favorites = [];
         }
 
-        const favoriteIds = new Set(
-            favorites.map(f => String(f.id))
-        );
+        const favoriteIds = new Set(favorites.map(item => String(item.id)));
 
         feed.innerHTML = matches.map(roommate => {
             const isFavorite = favoriteIds.has(String(roommate.id));
-
             const name = escapeHtml(roommate.name || "Студент");
-
-            const age = roommate.age == null
-                ? ""
-                : `, ${escapeHtml(roommate.age)}`;
-
-            const course = escapeHtml(
-                roommate.course
-                    ? roommate.course + " курс"
-                    : "Курс не указан"
-            );
-
-            const uni = escapeHtml(
-                roommate.university || "ВУЗ не указан"
-            );
-
-            const score = roommate.compatibility == null
-                ? "—"
-                : roommate.compatibility;
+            const age = roommate.age == null ? "" : `, ${escapeHtml(roommate.age)}`;
+            const course = escapeHtml(roommate.course ? `${roommate.course} курс` : "Курс не указан");
+            const uni = escapeHtml(roommate.university || "ВУЗ не указан");
+            const score = roommate.compatibility ?? "—";
 
             const reasons = roommate.preferenceResults.length
                 ? roommate.preferenceResults.map(result => `
                     <li class="${result.matched ? "matched" : "different"}">
-                        <span class="preference-mark">
-                            ${result.matched ? "✓" : "✗"}
-                        </span>
+                        <span class="preference-mark">${result.matched ? "✓" : "✗"}</span>
                         <span>${escapeHtml(result.label)}</span>
                     </li>
                 `).join("")
-                : "<li>Недостаточно данных для сравнения</li>";
+                : "<li>Нет общих заполненных критериев</li>";
 
             return `
                 <a href="/profile/view/${encodeURIComponent(roommate.id)}" class="person-card">
@@ -693,19 +652,15 @@
                                 <h2>${name}${age}</h2>
                                 <p>📍 ${course} · ${uni}</p>
                             </div>
-
                             <div class="badge-percent">
                                 <span class="num">${score}</span>
-                                <span class="sign">
-                                    ${roommate.compatibility == null ? "нет данных" : "%"}
-                                </span>
+                                <span class="sign">${roommate.compatibility == null ? "нет данных" : "%"}</span>
                             </div>
                         </div>
                     </div>
 
                     <div class="card-reason-bar">
                         <ul class="preference-list">${reasons}</ul>
-
                         <div class="card-actions">
                             <button
                                 type="button"
@@ -714,7 +669,6 @@
                                 aria-pressed="${isFavorite}">
                                 ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
                             </button>
-
                             <span class="arrow-icon">➔</span>
                         </div>
                     </div>
@@ -736,14 +690,9 @@
                 let items = [];
 
                 try {
-                    items = JSON.parse(
-                        localStorage.getItem("flatmateFavorites") || "[]"
-                    );
-
-                    if (!Array.isArray(items)) {
-                        items = [];
-                    }
-                } catch (e) {
+                    items = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
+                    if (!Array.isArray(items)) items = [];
+                } catch {
                     items = [];
                 }
 
@@ -751,36 +700,21 @@
                     item => String(item.id) === String(roommate.id)
                 );
 
-                const isFavorite = index < 0;
+                const isFavorite = index === -1;
 
                 if (isFavorite) {
-                    items.push({
-                        id: roommate.id,
-                        name: roommate.name
-                    });
+                    items.push({ id: roommate.id, name: roommate.name });
                 } else {
                     items.splice(index, 1);
                 }
 
-                localStorage.setItem(
-                    "flatmateFavorites",
-                    JSON.stringify(items)
-                );
-
+                localStorage.setItem("flatmateFavorites", JSON.stringify(items));
                 button.classList.toggle("is-favorite", isFavorite);
-
-                button.setAttribute(
-                    "aria-pressed",
-                    String(isFavorite)
-                );
-
-                button.textContent = isFavorite
-                    ? "♥ В избранном"
-                    : "♡ В избранное";
+                button.setAttribute("aria-pressed", String(isFavorite));
+                button.textContent = isFavorite ? "♥ В избранном" : "♡ В избранное";
             });
         });
     }
 </script>
-
 </body>
 </html>
