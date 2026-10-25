@@ -563,33 +563,43 @@
     })[ch]);
 
     
-    function calculateCompatibility(roommate) {
+       function calculateCompatibility(roommate) {
         const results = [];
+        let totalAnswered = 0;
         let matchedCount = 0;
 
         for (const [key, label] of fields) {
-            const yours = String(myProfile?.[key] ?? "").trim().toLowerCase();
-            const theirs = String(roommate?.[key] ?? "").trim().toLowerCase();
+            // Принудительно приводим всё к нижнему регистру и убираем пробелы
+            const yours = myProfile && myProfile[key] ? String(myProfile[key]).trim().toLowerCase() : "";
+            const theirs = roommate && roommate[key] ? String(roommate[key]).trim().toLowerCase() : "";
 
-            if (!yours || !theirs) continue;
-
-            const matched = yours === theirs;
-            if (matched) matchedCount++;
-
-            results.push({
-                matched,
-                label: `${label}: ${matched ? "совпадает" : "отличается"}`
-            });
+            // Если оба поля существуют, сравниваем их
+            if (yours && theirs) {
+                totalAnswered++;
+                const matched = yours === theirs;
+                if (matched) {
+                    matchedCount++;
+                }
+                results.push({
+                    matched,
+                    label: matched ? `${label}: совпадает` : `${label}: отличается`
+                });
+            }
         }
+
+        // Если общих ответов нет, ставим дефолтную совместимость (например, 50%), 
+        // чтобы плашка не была пустой, пока пользователи не заполнили анкеты полностью
+        const compatibilityScore = totalAnswered > 0 
+            ? Math.round((matchedCount / totalAnswered) * 100) 
+            : 50; 
 
         return {
             ...roommate,
-            compatibility: results.length
-                ? Math.round(matchedCount * 100 / results.length)
-                : null,
-            preferenceResults: results
+            compatibility: compatibilityScore,
+            preferenceResults: results.length ? results : [{ matched: true, label: "Базовая совместимость студентов" }]
         };
     }
+
 
     const matches = dbProfiles
         .filter(user => user.id != null && String(user.id) !== String(myProfile?.id))
