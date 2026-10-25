@@ -139,7 +139,8 @@ h1 span { color: var(--accent); }
   <div class="container header-inner">
     <a th:href="@{/}" class="logo"><img th:src="@{/foto.jpeg}" alt="FlatMate">FlatMate</a>
     <!-- Кнопка "Войти" в верхнем правом углу меню -->
-    <a href="login.html" class="nav-login-btn">Войти</a>
+    <a th:href="@{/login}" class="nav-login-btn">Войти</a>
+
   </div>
 </header>
 
@@ -159,8 +160,12 @@ h1 span { color: var(--accent); }
     <div class="stat-box"><h2>%</h2><p>прозрачный матч</p></div>
     <div class="stat-box"><h2>чат</h2><p>без номера сразу</p></div>
   </section>
-
   
+  <section class="actions">
+    <a th:href="@{/login}" class="btn-primary">Начать поиск</a>
+    <a th:href="@{/login}" class="btn-secondary">Уже есть аккаунт? Войти</a>
+  </section>
+
 </main>
 
 <footer class="footer">
