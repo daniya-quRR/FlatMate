@@ -522,7 +522,9 @@
         <div class="sidebar-actions" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px;">
             <!-- Ссылка на профиль -->
             <a th:href="@{/profile}" class="profile-btn">
-                <div class="avatar-mini" id="miniAvatar">?</div>
+<!-- Если у текущего пользователя есть фото, ставим его, если нет — сработает текстовая заглушка из скрипта -->
+<div class="avatar-mini" id="miniAvatar"
+     th:style="${currentUser.photo != null && !currentUser.photo.isEmpty()} ? 'background-image: url(' + ${currentUser.photo} + '); background-size: cover; background-position: center; color: transparent;' : ''">?</div>
                 <span th:text="${session.currentUser.name}">Мой профиль</span>
             </a>
 
@@ -567,10 +569,10 @@
     const currentUserObj = /*[[${currentUser}]]*/ null;
 </script>
 
-<script>
+<script th:inline="none">
     const dbProfiles = Array.isArray(dbUsers) ? dbUsers : [];
 
-    // Текущий пользователь из бэкенда
+    // Беру залогиненного пользователя строго из сессии бэкэнда
     const myProfile = currentUserObj;
 
     const fields = [

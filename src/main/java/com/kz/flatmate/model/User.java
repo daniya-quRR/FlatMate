@@ -20,6 +20,10 @@ public class User {
     private String university;
     private String course; 
 
+    // СТУДЕНЧЕСКИЙ ФИКС: Поле для хранения фото (TEXT позволит хранить картинку в Base64 без лимитов)
+    @Column(columnDefinition = "TEXT")
+    private String photo;
+
     @Column(length = 500)
     private String about;
 
@@ -51,6 +55,11 @@ public class User {
     public void setUniversity(String university) { this.university = university; }
     public String getCourse() { return course; }
     public void setCourse(String course) { this.course = course; }
+
+    // Геттер и сеттер для нового поля фотографии
+    public String getPhoto() { return photo; }
+    public void setPhoto(String photo) { this.photo = photo; }
+
     public String getAbout() { return about; }
     public void setAbout(String about) { this.about = about; }
     public String getCleanliness() { return cleanliness; }

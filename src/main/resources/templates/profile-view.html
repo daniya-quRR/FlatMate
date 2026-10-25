@@ -304,10 +304,12 @@
         <!-- ПРОФИЛЬ СОСЕДА -->
         <section class="card">
 
-            <div class="avatar"
-                 th:text="${profileUser.name != null and !profileUser.name.isEmpty() ? #strings.substring(profileUser.name, 0, 1) : '?'}">
-                A
-            </div>
+           <!-- Если у пользователя есть фото, ставим его на фон, если нет — показываем первую букву -->
+<div class="avatar" 
+     th:style="${profileUser.photo != null && !profileUser.photo.isEmpty()} ? 'background-image: url(' + ${profileUser.photo} + '); background-size: cover; background-position: center; color: transparent;' : ''">
+     <span th:if="${profileUser.photo == null || profileUser.photo.isEmpty()}" th:text="${#strings.substring(profileUser.name,0,1).toUpperCase()}">A</span>
+</div>
+
 
             <h1 th:text="${profileUser.name != null ? profileUser.name : 'Пользователь'}">
                 Имя пользователя

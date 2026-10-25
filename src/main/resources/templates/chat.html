@@ -234,7 +234,10 @@
 
   <header class="chat-header">
     <a th:href="@{/matches}" class="back-arrow-btn">←</a>
-    <div class="chat-avatar"></div>
+<!-- Если у собеседника есть фото, ставим его на фон, если нет — сработает красивый дефолтный градиент -->
+<div class="chat-avatar" 
+     th:style="${chatUser.photo != null && !chatUser.photo.isEmpty()} ? 'background-image: url(' + ${chatUser.photo} + '); background-size: cover; background-position: center;' : 'background: linear-gradient(135deg, #56715E 0%, #243E33 100%);'">
+</div>
     <div class="header-user-info">
       <h3 th:text="${chatUser.name}">Имя студента</h3>
       <p><span class="lock-icon"></span> номер скрыт · FlatMate</p>

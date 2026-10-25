@@ -557,11 +557,15 @@ input[type=file] {
 </head>
 
 <body>
-  <form th:action="@{/profile/save}" th:object="${user}" method="post">
-    <!-- Просто скрытый ID для базы данных, препод всегда требует на лабах -->
+ <form th:action="@{/profile/save}" th:object="${user}" method="post">
+    <!-- Скрытый ID для базы данных -->
     <input type="hidden" th:field="*{id}" />
+    
+    <!-- Студенческий фикс: Скрытое поле для отправки фотографии в Java-контроллер -->
+    <input type="hidden" id="photoBase64" th:field="*{photo}" />
 
     <div class="wrap">
+
 
            <div class="header">
         <!-- Правильный синтаксис Thymeleaf для перехода на главную страницу контроллера -->
@@ -1116,10 +1120,12 @@ input[type=file] {
 const $ = id => document.getElementById(id);
 
 const state = {
-  photo: "",
+  // Забираем сохраненное фото из базы при открытии страницы
+  photo: document.getElementById('photoBase64') ? document.getElementById('photoBase64').value : "",
   verified: "none",
   status: "active"
 };
+
 
 /* =========================
    ОТОБРАЖЕНИЕ ПРОФИЛЯ
@@ -1214,10 +1220,17 @@ $('photoInput').addEventListener(
     e.target.files[0],
     data => {
       state.photo = data;
+      
+      // ВОТ ЭТА СТРОЧКА ДОЛЖНА БЫТЬ ЗДЕСЬ:
+      if (document.getElementById('photoBase64')) {
+          document.getElementById('photoBase64').value = data;
+      }
+      
       render();
     }
   )
 );
+
 
 $('idInput').addEventListener(
   'change',

@@ -112,28 +112,31 @@ public class FlatmateController {
         }
     }
 
-        @GetMapping("/matches")
+          @GetMapping("/matches")
     public String showMatches(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser == null) {
             return "redirect:/login";
         }
         
+        // БЭКЭНД-ФИКС: Всегда подтягиваем самую свежую анкету из базы, чтобы фото не пропадало!
+        User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+        session.setAttribute("currentUser", freshUser);
+        model.addAttribute("currentUser", freshUser);
+        
         // Вытаскиваем всех пользователей для ленты подбора
         java.util.List<User> allUsers = userRepository.findAll();
         model.addAttribute("users", allUsers);
-        model.addAttribute("currentUser", currentUser);
 
         // ВЫТАСКИВАЕМ ВСЕХ, С КЕМ ЕСТЬ ДИАЛОГ (для панели сообщений)
-        // Берем сообщения, где текущий пользователь либо отправитель, либо получатель
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
-            .filter(m -> m.getSenderId().equals(currentUser.getId()) || m.getReceiverId().equals(currentUser.getId()))
+            .filter(m -> m.getSenderId().equals(freshUser.getId()) || m.getReceiverId().equals(freshUser.getId()))
             .toList();
 
         // Находим уникальные ID собеседников
         java.util.Set<Long> dialogUserIds = new java.util.HashSet<>();
         for (ChatMessage m : myMessages) {
-            if (m.getSenderId().equals(currentUser.getId())) {
+            if (m.getSenderId().equals(freshUser.getId())) {
                 dialogUserIds.add(m.getReceiverId());
             } else {
                 dialogUserIds.add(m.getSenderId());
@@ -146,6 +149,7 @@ public class FlatmateController {
 
         return "matches";
     }
+
 
 
     // Профиль соседа с анализом совместимости на основе СЕССИИ
@@ -180,6 +184,10 @@ public class FlatmateController {
             return "redirect:/login";
         }
 
+        // БЭКЭНД-ФИКС: Всегда обновляем сессию текущего юзера из базы перед открытием чата
+        User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+        session.setAttribute("currentUser", freshUser);
+
         User chatWithUser = userRepository.findById(id).orElse(null);
         if (chatWithUser == null) {
             return "redirect:/matches";
@@ -187,16 +195,17 @@ public class FlatmateController {
 
         model.addAttribute("chatUser", chatWithUser);
 
-        // Ищем сообщения только между текущим юзером и собеседником в обе стороны
+        // Ищем сообщения между обновленным свежим пользователем и собеседником
         java.util.List<ChatMessage> messages = chatMessageRepository
                 .findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(
-                        currentUser.getId(), chatWithUser.getId(),
-                        chatWithUser.getId(), currentUser.getId()
+                        freshUser.getId(), chatWithUser.getId(),
+                        chatWithUser.getId(), freshUser.getId()
                 );
 
         model.addAttribute("messages", messages);
         return "chat";
     }
+
 
     // Отправка сообщения от имени текущего авторизованного пользователя
     @PostMapping("/chat/{id}/send")
