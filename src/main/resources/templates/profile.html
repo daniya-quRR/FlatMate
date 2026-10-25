@@ -563,8 +563,9 @@ input[type=file] {
 
     <div class="wrap">
 
-      <div class="header">
-        <a href="index">← &nbsp;Назад</a>
+           <div class="header">
+        <!-- Правильный синтаксис Thymeleaf для перехода на главную страницу контроллера -->
+        <a th:href="@{/}" style="text-decoration: none; color: inherit;">← &nbsp;Назад</a>
         <span>Профиль</span>
       </div>
 
