@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" xmlns:th="http://thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -34,7 +34,6 @@
       position: relative;
     }
 
-
     .chat-header {
       display: flex;
       align-items: center;
@@ -56,7 +55,7 @@
       width: 44px;
       height: 44px;
       border-radius: 50%;
-      background-image: url('https://unsplash.com');
+      background: linear-gradient(135deg, #56715E 0%, #243E33 100%);
       background-size: cover;
       background-position: center;
     }
@@ -84,7 +83,6 @@
       background-size: contain;
       background-repeat: no-repeat;
     }
-
 
     .chat-messages-area {
       flex: 1;
@@ -145,7 +143,6 @@
       text-align: right;
     }
 
-
     .chat-bottom-controls {
       background-color: #F6F4EB;
       padding-top: 12px;
@@ -179,6 +176,10 @@
     }
 
     .input-row-wrapper {
+      width: 100%;
+    }
+
+    .chat-form {
       display: flex;
       gap: 12px;
       align-items: center;
@@ -204,7 +205,7 @@
       color: #FFFFFF;
       border: none;
       width: 52px;
-      height: 42px;
+      height: 48px;
       border-radius: 24px;
       cursor: pointer;
       display: flex;
@@ -213,7 +214,7 @@
       transition: background-color 0.15s;
       flex-shrink: 0;
     }
-    .send-airplane-btn th:hover { background-color: #1F3D31; }
+    .send-airplane-btn:hover { background-color: #1F3D31; }
 
     .airplane-svg {
       width: 18px;
@@ -232,88 +233,69 @@
 <div class="chat-container">
 
   <header class="chat-header">
-    
-<a th:href="@{/matches}" class="back-arrow-btn">←</a>
-<div class="chat-avatar"></div>
-<div class="header-user-info">
-  <h3 th:text="${chatUser.name}">Имя студента</h3>
-  <p><span class="lock-icon"></span> номер скрыт · FlatMate</p>
-</div>
+    <a th:href="@{/matches}" class="back-arrow-btn">←</a>
+    <div class="chat-avatar"></div>
+    <div class="header-user-info">
+      <h3 th:text="${chatUser.name}">Имя студента</h3>
+      <p><span class="lock-icon"></span> номер скрыт · FlatMate</p>
+    </div>
   </header>
 
   <div class="chat-messages-area" id="messagesBox">
-
     <div class="system-notice">
       FlatMate не показывает телефон, пока оба не согласятся. Это знакомство, не чат с OLX.
     </div>
 
-    <div class="message-bubble incoming">
-      Привет! Тоже ищешь квартиру в Бостандыке?
-      <div class="bubble-time">18:02</div>
+    <!-- ТВОЙ БЭКЭНД ЦИКЛ: Выгружаем историю сообщений из базы данных -->
+    <div th:each="msg : ${messages}" 
+         th:class="${msg.senderId == session.currentUser.id} ? 'message-bubble outgoing' : 'message-bubble incoming'">
+         <span th:text="${msg.content}">Текст сообщения</span>
+         <div class="bubble-time" th:text="${#temporals.format(msg.sentAt, 'HH:mm')}">12:00</div>
     </div>
-
   </div>
 
   <div class="chat-bottom-controls">
     <div class="prompts-scroll-row">
-      <button class="prompt-chip" onclick="selectPrompt(this)">Привет! Тоже ищешь квартиру ближе к универу?</button>
-      <button class="prompt-chip" onclick="selectPrompt(this)">Во сколько планируешь смотреть?</button>
+      <button type="button" class="prompt-chip" onclick="selectPrompt(this)">Привет! Тоже ищешь квартиру ближе к универу?</button>
+      <button type="button" class="prompt-chip" onclick="selectPrompt(this)">Во сколько планируешь смотреть?</button>
     </div>
 
     <div class="input-row-wrapper">
-
-<input
-  type="text"
-  id="messageField"
-  class="chat-text-input"
-  placeholder="Напишите сообщение..."
-  onkeypress="handleKeyPress(event)"
->
-      <button class="send-airplane-btn" onclick="executeSend()">
-        <svg class="airplane-svg" viewBox="0 0 24 24">
-          <line x1="22" y1="2" x2="11" y2="13"></line>
-          <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-        </svg>
-      </button>
+      <!-- Настоящая HTML-форма отправки на бэкэнд-контроллер -->
+      <form th:action="@{/chat/{id}/send(id=${chatUser.id})}" method="post" class="chat-form">
+        <input
+          type="text"
+          id="messageField"
+          name="content"
+          class="chat-text-input"
+          placeholder="Напишите сообщение..."
+          autocomplete="off"
+          required
+        >
+        <button type="submit" class="send-btn send-airplane-btn">
+          <svg class="airplane-svg" viewBox="0 0 24 24">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
     </div>
   </div>
 
 </div>
 
 <script>
+  // Оставляем логику подсказок девочек — при клике текст вставляется в поле и форма отправляется
   function selectPrompt(buttonElement) {
-    document.getElementById('messageField').value = buttonElement.innerText;
-    executeSend();
+    const input = document.getElementById('messageField');
+    input.value = buttonElement.innerText;
+    input.form.submit();
   }
 
-  function handleKeyPress(e) {
-    if (e.key === 'Enter') executeSend();
-  }
-
-  function executeSend() {
-    const inputField = document.getElementById('messageField');
-    if (!inputField.value.trim()) return;
-
-    const messagesBox = document.getElementById('messagesBox');
-    const newBubble = document.createElement('div');
-    newBubble.className = 'message-bubble outgoing';
-
-    // Получаем текущее время на ноутбуке компьютера
-    const timestamp = new Date();
-    const formattedTime = timestamp.getHours().toString().padStart(2, '0') + ':' + timestamp.getMinutes().toString().padStart(2, '0');
-
-
-const messageText = document.createElement('div');
-messageText.textContent = inputField.value;
-newBubble.appendChild(messageText);
-
-const timeElement = document.createElement('div');
-timeElement.className = 'bubble-time';
-timeElement.textContent = formattedTime;
-newBubble.appendChild(timeElement);
-messagesBox.appendChild(newBubble);
-inputField.value = '';
-messagesBox.scrollTop = messagesBox.scrollHeight;
+  // При открытии чата автоматически прокручиваем сообщения вниз
+  const messagesBox = document.getElementById('messagesBox');
+  if (messagesBox) {
+    messagesBox.scrollTop = messagesBox.scrollHeight;
   }
 </script>
 
