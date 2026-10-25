@@ -515,17 +515,46 @@
 
 <div class="matches-container">
 
-    <div class="left-panel">
+       <div class="left-panel">
         <div class="meta-tag">Ваши совпадения</div>
         <h1 class="page-title">0 анкет</h1>
 
-        <div class="sidebar-actions">
+        <div class="sidebar-actions" style="display: flex; flex-direction: column; gap: 14px; margin-bottom: 30px;">
+            <!-- Ссылка на профиль -->
             <a th:href="@{/profile}" class="profile-btn">
-                <div class="avatar-mini"></div>
-                <span>Мой профиль</span>
+                <div class="avatar-mini" id="miniAvatar">?</div>
+                <span th:text="${session.currentUser.name}">Мой профиль</span>
+            </a>
+
+            <!-- НАСТОЯЩАЯ КНОПКА ВЫХОДА ИЗ АККАУНТА -->
+            <a th:href="@{/logout}" class="profile-btn" style="border-color: #FFF0EE; color: #B3402E; justify-content: center;">
+                <span>Выйти из аккаунта</span>
+            </a>
+        </div>
+
+        <!-- НОВОЕ ОКОШКО: СПИСОК ВСЕХ АКТИВНЫХ ДИАЛОГОВ -->
+        <div class="meta-tag" style="margin-top: 20px; margin-bottom: 12px;">Ваши диалоги</div>
+        <div class="dialogs-box" style="display: flex; flex-direction: column; gap: 10px; background: white; padding: 16px; border-radius: 20px; border: 1px solid #E2DFD5; box-shadow: 0 4px 12px rgba(0,0,0,0.01);">
+            <!-- Если диалогов еще нет -->
+            <div th:if="${dialogUsers.isEmpty()}" style="font-size: 13px; color: #8A857B; text-align: center; padding: 10px 0;">
+                Пока нет активных переписок.
+            </div>
+            
+            <!-- Цикл Thymeleaf: выводим людей, с кем уже общались -->
+            <a th:each="chatPartner : ${dialogUsers}" 
+               th:href="@{/chat/{id}(id=${chatPartner.id})}" 
+               style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; background: #FBFAF6; text-decoration: none; color: inherit; border: 1px solid transparent; transition: border 0.15s;"
+               onmouseover="this.style.borderColor='#295241'" 
+               onmouseout="this.style.borderColor='transparent'">
+                <div style="width: 10px; height: 10px; border-radius: 50%; background: #295241;"></div>
+                <div style="display: flex; flex-direction: column; min-width: 0;">
+                    <b th:text="${chatPartner.name}" style="font-size: 14px; white-space: nowrap; overflow: hidden; text-transform: capitalize; text-overflow: ellipsis;">Имя</b>
+                    <span th:text="${chatPartner.university}" style="font-size: 11px; color: #8A857B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">ВУЗ</span>
+                </div>
             </a>
         </div>
     </div>
+
 
     <div class="matches-feed" id="matchesFeed">
         <!-- Карточки совпадений создаются автоматически -->

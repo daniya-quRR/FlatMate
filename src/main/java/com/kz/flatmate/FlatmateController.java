@@ -112,14 +112,41 @@ public class FlatmateController {
         }
     }
 
-    @GetMapping("/matches")
+        @GetMapping("/matches")
     public String showMatches(Model model, HttpSession session) {
-        if (session.getAttribute("currentUser") == null) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
             return "redirect:/login";
         }
-        model.addAttribute("users", userRepository.findAll());
+        
+        // Вытаскиваем всех пользователей для ленты подбора
+        java.util.List<User> allUsers = userRepository.findAll();
+        model.addAttribute("users", allUsers);
+        model.addAttribute("currentUser", currentUser);
+
+        // ВЫТАСКИВАЕМ ВСЕХ, С КЕМ ЕСТЬ ДИАЛОГ (для панели сообщений)
+        // Берем сообщения, где текущий пользователь либо отправитель, либо получатель
+        java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
+            .filter(m -> m.getSenderId().equals(currentUser.getId()) || m.getReceiverId().equals(currentUser.getId()))
+            .toList();
+
+        // Находим уникальные ID собеседников
+        java.util.Set<Long> dialogUserIds = new java.util.HashSet<>();
+        for (ChatMessage m : myMessages) {
+            if (m.getSenderId().equals(currentUser.getId())) {
+                dialogUserIds.add(m.getReceiverId());
+            } else {
+                dialogUserIds.add(m.getSenderId());
+            }
+        }
+
+        // Загружаем из базы профили этих собеседников
+        java.util.List<User> dialogUsers = userRepository.findAllById(dialogUserIds);
+        model.addAttribute("dialogUsers", dialogUsers);
+
         return "matches";
     }
+
 
     // Профиль соседа с анализом совместимости на основе СЕССИИ
     @GetMapping("/profile/view/{id}")
