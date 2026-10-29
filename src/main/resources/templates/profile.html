@@ -653,6 +653,23 @@ input[type=file] {
     </div>
 
   </div>
+  <div class="field">
+    <label>Ваш пол</label>
+    <select th:field="*{gender}" class="chat-text-input" style="width: 100%; margin-bottom: 15px;">
+        <option value="female">Женский</option>
+        <option value="male">Мужской</option>
+    </select>
+</div>
+
+<!-- Выбор предпочтений для поиска сожителя -->
+<div class="field">
+    <label>Кого вы ищете в сожители?</label>
+    <select th:field="*{preferredGender}" class="chat-text-input" style="width: 100%; margin-bottom: 15px;">
+        <option value="any">Любой пол (И парней, и девушек)</option>
+        <option value="female">Только девушек</option>
+        <option value="male">Только парней</option>
+    </select>
+</div>
 
   <div class="card">
 

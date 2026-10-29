@@ -35,7 +35,8 @@ public class User {
     private String pets;
     private String sociability;
     private String searchStatus;
-
+    private String gender;            
+    private String preferredGender;  
     public User() {}
 
     public Long getId() { return id; }
@@ -78,4 +79,9 @@ public class User {
     public void setSociability(String sociability) { this.sociability = sociability; }
     public String getSearchStatus() { return searchStatus; }
     public void setSearchStatus(String searchStatus) { this.searchStatus = searchStatus; }
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+
+    public String getPreferredGender() { return preferredGender; }
+    public void setPreferredGender(String preferredGender) { this.preferredGender = preferredGender; }
 }

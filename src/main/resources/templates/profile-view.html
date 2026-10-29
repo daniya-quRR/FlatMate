@@ -341,6 +341,16 @@
                       th:text="${profileUser.course != null ? profileUser.course : 'Не указан'}">
                 </span>
             </div>
+            <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E2DFD5; font-size: 14px;">
+    <span style="color: #8A857B;">Пол</span>
+    <b th:text="${profileUser.gender == 'male'} ? 'Мужской' : 'Женский'">Не указан</b>
+</div>
+
+<!-- Отображение кого ищет сосед -->
+<div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #E2DFD5; font-size: 14px;">
+    <span style="color: #8A857B;">Ищет в сожители</span>
+    <b th:text="${profileUser.preferredGender == 'male' ? 'Только парней' : (profileUser.preferredGender == 'female' ? 'Только девушек' : 'Любой пол')}">Не указано</b>
+</div>
 
             <div class="about">
                 <strong>О себе</strong>

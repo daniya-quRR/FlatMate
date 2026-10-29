@@ -67,6 +67,8 @@ public class FlatmateController {
         newUser.setPets("no");
         newUser.setSociability("balanced");
         newUser.setSearchStatus("active");
+        newUser.setGender("female");          // По умолчанию ставим женский (или male)
+        newUser.setPreferredGender("any"); 
         
         userRepository.save(newUser);
         return "ok";
@@ -112,43 +114,56 @@ public class FlatmateController {
         }
     }
 
-          @GetMapping("/matches")
+        @GetMapping("/matches")
     public String showMatches(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser == null) {
             return "redirect:/login";
         }
         
-        // БЭКЭНД-ФИКС: Всегда подтягиваем самую свежую анкету из базы, чтобы фото не пропадало!
         User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
         session.setAttribute("currentUser", freshUser);
         model.addAttribute("currentUser", freshUser);
         
-        // Вытаскиваем всех пользователей для ленты подбора
-        java.util.List<User> allUsers = userRepository.findAll();
-        model.addAttribute("users", allUsers);
+        // Безопасное приведение полей текущего пользователя к строке
+        String myPref = freshUser.getPreferredGender() != null ? freshUser.getPreferredGender() : "any";
+        String myGender = freshUser.getGender() != null ? freshUser.getGender() : "female";
+        
+        // ВЫБОРКА С ЗАЩИТОЙ ОТ NULL
+        java.util.List<User> filteredUsers = userRepository.findAll().stream()
+            .filter(u -> !u.getId().equals(freshUser.getId())) // Исключаем себя
+            .filter(u -> {
+                // Защита: подставляем дефолты, если у кого-то в базе поля пустые
+                String userGender = u.getGender() != null ? u.getGender() : "female";
+                String userPref = u.getPreferredGender() != null ? u.getPreferredGender() : "any";
 
-        // ВЫТАСКИВАЕМ ВСЕХ, С КЕМ ЕСТЬ ДИАЛОГ (для панели сообщений)
+                // Если у нас стоит фильтр "Искать парня" или "Искать девушку"
+                if (!"any".equals(myPref)) {
+                    if (!myPref.equals(userGender)) return false;
+                }
+                // Проверяем взаимность: подходит ли текущий пользователь под фильтр собеседника
+                if (!"any".equals(userPref)) {
+                    if (!userPref.equals(myGender)) return false;
+                }
+                return true;
+            })
+            .toList();
+            
+        model.addAttribute("users", filteredUsers);
+
+        // Твоя логика диалогов слева
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
             .filter(m -> m.getSenderId().equals(freshUser.getId()) || m.getReceiverId().equals(freshUser.getId()))
             .toList();
-
-        // Находим уникальные ID собеседников
         java.util.Set<Long> dialogUserIds = new java.util.HashSet<>();
         for (ChatMessage m : myMessages) {
-            if (m.getSenderId().equals(freshUser.getId())) {
-                dialogUserIds.add(m.getReceiverId());
-            } else {
-                dialogUserIds.add(m.getSenderId());
-            }
+            dialogUserIds.add(m.getSenderId().equals(freshUser.getId()) ? m.getReceiverId() : m.getSenderId());
         }
-
-        // Загружаем из базы профили этих собеседников
-        java.util.List<User> dialogUsers = userRepository.findAllById(dialogUserIds);
-        model.addAttribute("dialogUsers", dialogUsers);
+        model.addAttribute("dialogUsers", userRepository.findAllById(dialogUserIds));
 
         return "matches";
     }
+
 
 
 
