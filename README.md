@@ -12,4 +12,10 @@ FlatMate помогает пользователям находить сосед
 Жалилова Алинура -  разработка backend-части проекта, участие во frontend-разработке и дизайне интерфейса.
 
 Каблакатова Карина - продвижение проекта в социальных сетях, ведение аккаунтов
-## Ссылка на сайт: https://flatmate1.netlify.app
+## Ссылка на сайт: https://flatmate-t0py.onrender.com/
+## Frontend 
+HTML, CSS, JavaScript, Thymeleaf
+## Backend 
+Java + Spring Boot
+## Database — база данных
+PostgreSQL

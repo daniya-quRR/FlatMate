@@ -567,6 +567,8 @@
 <script th:inline="javascript">
     const dbUsers = /*[[${users}]]*/ [];
     const currentUserObj = /*[[${currentUser}]]*/ null;
+    console.log("Пользователи из базы:", dbUsers);
+    console.log("Текущий пользователь:", currentUserObj);
 </script>
 
 <script th:inline="none">

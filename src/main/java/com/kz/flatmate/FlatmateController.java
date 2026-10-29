@@ -125,6 +125,7 @@ public class FlatmateController {
         session.setAttribute("currentUser", freshUser);
         model.addAttribute("currentUser", freshUser);
         
+<<<<<<< HEAD
         // Безопасное приведение полей текущего пользователя к строке
         String myPref = freshUser.getPreferredGender() != null ? freshUser.getPreferredGender() : "any";
         String myGender = freshUser.getGender() != null ? freshUser.getGender() : "female";
@@ -136,6 +137,13 @@ public class FlatmateController {
                 // Защита: подставляем дефолты, если у кого-то в базе поля пустые
                 String userGender = u.getGender() != null ? u.getGender() : "female";
                 String userPref = u.getPreferredGender() != null ? u.getPreferredGender() : "any";
+=======
+        // Вытаскиваем всех пользователей для ленты подбора
+        java.util.List<User> allUsers = userRepository.findAll();
+        model.addAttribute("users", allUsers);
+        System.out.println("Всего пользователей: " + allUsers.size());
+        for (User u : allUsers) {System.out.println("ID: " + u.getId() + ", имя: " + u.getName());}
+>>>>>>> ba11ec4064aec2952e3c704c126307f61b3fe6ca
 
                 // Если у нас стоит фильтр "Искать парня" или "Искать девушку"
                 if (!"any".equals(myPref)) {
