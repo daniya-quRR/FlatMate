@@ -506,6 +506,38 @@
 
         }
 
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+                align-items: flex-start;
+            }
+            .matches-container {
+                grid-template-columns: 1fr; /* На телефоне панели встанут друг под друга */
+                gap: 24px;
+            }
+            .left-panel {
+                position: relative;
+                top: 0;
+            }
+            .page-title {
+                font-size: 26px;
+                margin-bottom: 16px;
+            }
+            .person-card {
+                flex-direction: column; /* Элементы внутри карточки на телефоне выстроятся вертикально */
+                align-items: flex-start !important;
+                gap: 16px;
+            }
+            .person-card > div {
+                width: 100%;
+                justify-content: space-between;
+            }
+            /* Плашка процента на телефоне сместится в правый нижний угол или по центру */
+            .person-card > div:last-child {
+                align-self: flex-end;
+            }
+        }
+
     </style>
 
 </head>
@@ -572,12 +604,11 @@
 </script>
 
 <script th:inline="none">
-    const dbProfiles = Array.isArray(dbUsers) ? dbUsers : [];
+    // Защищённый блок: проверяем массив профилей из базы данных
+    var dbProfiles = Array.isArray(dbUsers) ? dbUsers : [];
+    var myProfile = currentUserObj;
 
-    // Беру залогиненного пользователя строго из сессии бэкэнда
-    const myProfile = currentUserObj;
-
-    const fields = [
+    var fields = [
         ["cleanliness", "Уровень чистоты"],
         ["sleepMode", "Режим сна"],
         ["noiseLevel", "Уровень шума"],
@@ -587,163 +618,161 @@
         ["sociability", "Общительность"]
     ];
 
-    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, ch => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "'"
-    })[ch]);
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, function(ch) {
+            return {
+                "&": "&amp;",
+                "<": "&lt;",
+                ">": "&gt;",
+                '"': "&quot;",
+                "'": "'"
+            }[ch];
+        });
+    }
 
     function calculateCompatibility(roommate) {
-        const results = [];
-        let totalAnswered = 0;
-        let matchedCount = 0;
+        var results = [];
+        var totalAnswered = 0;
+        var matchedCount = 0;
 
-        for (const [key, label] of fields) {
-            // Принудительно приводим всё к нижнему регистру и убираем пробелы
-            const yours = myProfile && myProfile[key] ? String(myProfile[key]).trim().toLowerCase() : "";
-            const theirs = roommate && roommate[key] ? String(roommate[key]).trim().toLowerCase() : "";
+        for (var i = 0; i < fields.length; i++) {
+            var key = fields[i][0];
+            var label = fields[i][1];
+            
+            var yours = myProfile && myProfile[key] ? String(myProfile[key]).trim().toLowerCase() : "";
+            var theirs = roommate && roommate[key] ? String(roommate[key]).trim().toLowerCase() : "";
 
-            // Если оба поля существуют, сравниваем их
             if (yours && theirs) {
                 totalAnswered++;
-                const matched = yours === theirs;
+                var matched = yours === theirs;
                 if (matched) {
                     matchedCount++;
                 }
                 results.push({
-                    matched,
-                    label: matched ? `${label}: совпадает` : `${label}: отличается`
+                    matched: matched,
+                    label: matched ? (label + ": совпадает") : (label + ": отличается")
                 });
             }
         }
 
-        // Если общих ответов нет, ставим дефолтную совместимость 50%
-        const compatibilityScore = totalAnswered > 0 
+        var compatibilityScore = totalAnswered > 0 
             ? Math.round((matchedCount / totalAnswered) * 100) 
             : 50; 
 
         return {
-            ...roommate,
+            id: roommate.id,
+            name: roommate.name,
+            age: roommate.age,
+            course: roommate.course,
+            university: roommate.university,
+            photo: roommate.photo,
             compatibility: compatibilityScore,
             preferenceResults: results
         };
     }
 
-    const matches = dbProfiles
-        .filter(user => user.id != null && String(user.id) !== String(myProfile?.id))
-        .map(calculateCompatibility)
-        .sort((a, b) => (b.compatibility ?? -1) - (a.compatibility ?? -1));
+    // Фильтруем базу данных, убирая себя
+    var roommates = dbProfiles.filter(function(user) {
+        return user.id != null && (!myProfile || String(user.id) !== String(myProfile.id));
+    });
 
-    const matchCount = matches.length;
-    const countWord = matchCount === 1 ? "анкета"
+    var matches = roommates
+        .map(calculateCompatibility)
+        .sort(function(a, b) {
+            return (b.compatibility ?? -1) - (a.compatibility ?? -1);
+        });
+
+    var matchCount = matches.length;
+    var countWord = matchCount === 1 ? "анкета"
         : matchCount >= 2 && matchCount <= 4 ? "анкеты"
         : "анкет";
 
-    document.querySelector(".page-title").textContent = `${matchCount} ${countWord}`;
+    var pageTitleEl = document.querySelector(".page-title");
+    if (pageTitleEl) {
+        pageTitleEl.textContent = matchCount + " " + countWord;
+    }
 
-    const feed = document.getElementById("matchesFeed");
+    var feed = document.getElementById("matchesFeed");
 
     if (!matchCount) {
-        feed.innerHTML = `
-            <div style="background:white;border:1px solid #E2DFD5;border-radius:22px;padding:26px;line-height:1.7;color:#59574F">
-                <strong style="color:#171513">Пока нет анкет соседей</strong>
-                <p style="margin-top:10px">Для сравнения нужны как минимум две сохранённые анкеты в базе данных.</p>
-                <a href="/profile" style="color:#295241;display:inline-block;margin-top:12px;font-weight:700">
-                    Открыть мою анкету →
-                </a>
-            </div>
-        `;
+        if (feed) {
+            feed.innerHTML = '<div style="background:white;border:1px solid #E2DFD5;border-radius:22px;padding:26px;line-height:1.7;color:#59574F">' +
+                '<strong style="color:#171513">Пока нет анкет соседей</strong>' +
+                '<p style="margin-top:10px">Для сравнения нужны как минимум две сохранённые анкеты в базе данных.</p>' +
+                '<a href="/profile" style="color:#295241;display:inline-block;margin-top:12px;font-weight:700">Открыть мою анкету →</a>' +
+            '</div>';
+        }
     } else {
-        let favorites = [];
-
+        var favorites = [];
         try {
             favorites = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
             if (!Array.isArray(favorites)) favorites = [];
-        } catch {
+        } catch(e) {
             favorites = [];
         }
 
-        const favoriteIds = new Set(favorites.map(item => String(item.id)));
+        var favoriteIds = new Set(favorites.map(function(item) { return String(item.id); }));
 
-        feed.innerHTML = matches.map(roommate => {
-            const isFavorite = favoriteIds.has(String(roommate.id));
-            const name = escapeHtml(roommate.name || "Студент");
-            const age = roommate.age == null ? "" : `, ${escapeHtml(roommate.age)}`;
-            const course = escapeHtml(roommate.course ? `${roommate.course} курс` : "Курс не указан");
-            const uni = escapeHtml(roommate.university || "ВУЗ не указан");
-            const score = roommate.compatibility ?? "—";
+        if (feed) {
+            feed.innerHTML = matches.map(function(roommate) {
+                var isFavorite = favoriteIds.has(String(roommate.id));
+                var name = escapeHtml(roommate.name || "Студент");
+                var age = roommate.age == null ? "" : ", " + escapeHtml(roommate.age);
+                var course = escapeHtml(roommate.course ? roommate.course + " курс" : "Курс не указан");
+                var uni = escapeHtml(roommate.university || "ВУЗ не указан");
+                var score = roommate.compatibility ?? "—";
 
-            // СТУДЕНЧЕСКИЙ ФИКС: Фильтруем и выводим ТОЛЬКО те критерии, которые совпали (убираем крестики)
-            const matchedReasons = roommate.preferenceResults.filter(result => result.matched);
+                var defaultPhoto = "https://gstatic.com";
+                var photoUrl = roommate.photo && roommate.photo.trim() !== "" ? roommate.photo : defaultPhoto;
 
-            const reasons = matchedReasons.length
-                ? matchedReasons.map(result => `
-                    <li class="matched">
-                        <span class="preference-mark">✓</span>
-                        <span>${escapeHtml(result.label)}</span>
-                    </li>
-                `).join("")
-                : "<li>Базовая совместимость студентов</li>";
+                var matchedReasons = roommate.preferenceResults ? roommate.preferenceResults.filter(function(r) { return r.matched; }) : [];
 
-            return `
-                <a href="/profile/view/${encodeURIComponent(roommate.id)}" class="person-card">
-                    <div class="card-photo-area">
-                        <div class="photo-bottom-overlay">
-                            <div class="person-info">
-                                <h2>${name}${age}</h2>
-                                <p>📍 ${course} · ${uni}</p>
-                            </div>
-                            <div class="badge-percent">
-                                <span class="num">${score}</span>
-                                <span class="sign">${roommate.compatibility == null ? "нет данных" : "%"}</span>
-                            </div>
-                        </div>
-                    </div>
+                return '<a href="/profile/view/' + encodeURIComponent(roommate.id) + '" class="person-card" style="margin-bottom: 15px; border: 1px solid #E2DFD5; border-radius: 20px; padding: 16px; background: white; text-decoration: none; color: inherit; display: flex; justify-content: space-between; align-items: center; transition: transform 0.15s; box-shadow: 0 4px 12px rgba(0,0,0,0.02);">' +
+                        '<div style="display: flex; align-items: center; gap: 20px;">' +
+                            '<!-- Фото -->' +
+                            '<div style="width: 80px; height: 80px; border-radius: 16px; background-image: url(\'' + photoUrl + '\'); background-size: cover; background-position: center; flex-shrink: 0; border: 1px solid #E2DFD5;"></div>' +
+                            '<!-- Текст -->' +
+                            '<div style="display: flex; flex-direction: column; gap: 4px;">' +
+                                '<h2 style="font-size: 18px; font-weight: 800; color: #171513; margin: 0; text-transform: capitalize;">' + name + age + '</h2>' +
+                                '<p style="font-size: 13px; color: #8A857B; margin: 0; font-weight: 500;">📍 ' + course + ' · ' + uni + '</p>' +
+                                '<span style="font-size: 11px; color: #295241; font-weight: 700; background: #FFFBF7; padding: 2px 10px; border-radius: 20px; width: fit-content; border: 1px solid #E2DFD5; margin-top: 4px; display: inline-block;">' +
+                                    'Совпадает критериев: ' + matchedReasons.length + ' из ' + fields.length +
+                                '</span>' +
+                            '</div>' +
+                        '</div>' +
+                        '<!-- КРУГЛАЯ ПЛАШКА С ПРОЦЕНТОМ -->' +
+                        '<div style="background: #295241; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(41,82,65,0.2); flex-shrink: 0;">' +
+                            '<span style="font-size: 18px; font-weight: 800; line-height: 1;">' + score + '</span>' +
+                            '<span style="font-size: 10px; font-weight: 700; opacity: 0.8; margin-top: 1px;">%</span>' +
+                        '</div>' +
+                    '</a>';
+            }).join("");
+        }
 
-                    <div class="card-reason-bar">
-                        <ul class="preference-list">${reasons}</ul>
-                        <div class="card-actions">
-                            <button
-                                type="button"
-                                class="favorite-button${isFavorite ? " is-favorite" : ""}"
-                                data-roommate-id="${escapeHtml(roommate.id)}"
-                                aria-pressed="${isFavorite}">
-                                ${isFavorite ? "♥ В избранном" : "♡ В избранное"}
-                            </button>
-                            <span class="arrow-icon">➔</span>
-                        </div>
-                    </div>
-                </a>
-            `;
-        }).join("");
-
-        document.querySelectorAll(".favorite-button").forEach(button => {
-            button.addEventListener("click", event => {
+        document.querySelectorAll(".favorite-button").forEach(function(button) {
+            button.addEventListener("click", function(event) {
                 event.preventDefault();
                 event.stopPropagation();
 
-                const roommate = matches.find(
-                    person => String(person.id) === button.dataset.roommateId
-                );
+                var roommate = matches.find(function(person) {
+                    return String(person.id) === button.dataset.roommateId;
+                });
 
                 if (!roommate) return;
 
-                let items = [];
-
+                var items = [];
                 try {
                     items = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]");
                     if (!Array.isArray(items)) items = [];
-                } catch {
+                } catch(e) {
                     items = [];
                 }
 
-                const index = items.findIndex(
-                    item => String(item.id) === String(roommate.id)
-                );
+                var index = items.findIndex(function(item) {
+                    return String(item.id) === String(roommate.id);
+                });
 
-                const isFavorite = index === -1;
+                var isFavorite = index === -1;
 
                 if (isFavorite) {
                     items.push({ id: roommate.id, name: roommate.name });
