@@ -18,7 +18,10 @@ public class User {
     private String name;
     private Integer age;
     private String university;
-    private String course; 
+    private String course;
+    private java.time.LocalDateTime createdAt;   // Дата первой регистрации
+    private java.time.LocalDateTime lastLoginAt;  // Дата последнего входа
+ 
 
     // СТУДЕНЧЕСКИЙ ФИКС: Поле для хранения фото (TEXT позволит хранить картинку в Base64 без лимитов)
     @Column(columnDefinition = "TEXT")
@@ -84,4 +87,10 @@ public class User {
 
     public String getPreferredGender() { return preferredGender; }
     public void setPreferredGender(String preferredGender) { this.preferredGender = preferredGender; }
+    public java.time.LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(java.time.LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public java.time.LocalDateTime getLastLoginAt() { return lastLoginAt; }
+    public void setLastLoginAt(java.time.LocalDateTime lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
 }

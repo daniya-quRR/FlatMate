@@ -28,25 +28,30 @@ public class FlatmateController {
         return "index";
     }
 
-    // Страница входа/регистрации (девочки сделают её форму)
+    // Страница входа/регистрации
     @GetMapping("/login")
     public String showLoginPage() {
         return "login";
     }
 
-    // API для авторизации по email и password
+    // API для авторизации по email и password (Обычный текст без хэширования)
     @PostMapping("/api/auth/login")
     @ResponseBody
     public String login(@RequestParam String email, @RequestParam String password, HttpSession session) {
         User user = userRepository.findByEmail(email);
+        
+        // Сравниваем пароли как обычные строки текста
         if (user != null && user.getPassword().equals(password)) {
-            session.setAttribute("currentUser", user); // Запоминаем текущего юзера в сессию
+            user.setLastLoginAt(java.time.LocalDateTime.now());
+            userRepository.save(user);
+            
+            session.setAttribute("currentUser", user); 
             return "ok";
         }
         return "error";
     }
 
-    // API для регистрации нового студента
+    // API для регистрации нового студента (Обычный текст без хэширования)
     @PostMapping("/api/auth/register")
     @ResponseBody
     public String register(@RequestParam String email, @RequestParam String password, @RequestParam String name) {
@@ -55,10 +60,9 @@ public class FlatmateController {
         }
         User newUser = new User();
         newUser.setEmail(email);
-        newUser.setPassword(password);
+        newUser.setPassword(password); // Сохраняем пароль обычным текстом, как ввёл пользователь
         newUser.setName(name);
         
-        // Базовые дефолты анкеты
         newUser.setCleanliness("normal");
         newUser.setSleepMode("normal");
         newUser.setNoiseLevel("normal");
@@ -67,8 +71,10 @@ public class FlatmateController {
         newUser.setPets("no");
         newUser.setSociability("balanced");
         newUser.setSearchStatus("active");
-        newUser.setGender("female");          // По умолчанию ставим женский (или male)
+        newUser.setGender("female");          
         newUser.setPreferredGender("any"); 
+        
+        newUser.setCreatedAt(java.time.LocalDateTime.now());
         
         userRepository.save(newUser);
         return "ok";
@@ -79,7 +85,7 @@ public class FlatmateController {
     public String showProfile(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser == null) {
-            return "redirect:/login"; // Если не авторизован — на вход
+            return "redirect:/login"; 
         }
 
         User userFromDb = userRepository.findById(currentUser.getId()).orElse(currentUser);
@@ -95,26 +101,32 @@ public class FlatmateController {
             return "redirect:/login";
         }
         try {
-            // Защита: принудительно ставим ID и доступы текущей сессии
             user.setId(currentUser.getId());
             user.setEmail(currentUser.getEmail());
-            user.setPassword(currentUser.getPassword());
+            user.setPassword(currentUser.getPassword()); // Передаем обычный пароль без изменений
+            
+            if (user.getPhoto() == null || user.getPhoto().isEmpty()) {
+                user.setPhoto(currentUser.getPhoto());
+            }
+            if (user.getCreatedAt() == null) {
+                user.setCreatedAt(currentUser.getCreatedAt());
+            }
+            if (user.getGender() == null) {
+                user.setGender(currentUser.getGender());
+            }
+            if (user.getPreferredGender() == null) {
+                user.setPreferredGender(currentUser.getPreferredGender());
+            }
 
             userRepository.save(user);
-
-            System.out.println("=============================================");
-            System.out.println("=== АНКЕТА СТУДЕНТА ЗАПИСАНА В POSTGRESQL ===");
-            System.out.println("=============================================");
-            System.out.println("Имя: " + user.getName());
-            System.out.println("=============================================");
-
             return "redirect:/matches";
         } catch (Exception e) {
             return "redirect:/profile?error";
         }
     }
-
-        @GetMapping("/matches")
+    
+    // Лента матчей с обновлением данных сессии
+    @GetMapping("/matches")
     public String showMatches(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
         if (currentUser == null) {
@@ -125,31 +137,18 @@ public class FlatmateController {
         session.setAttribute("currentUser", freshUser);
         model.addAttribute("currentUser", freshUser);
         
-<<<<<<< HEAD
-        // Безопасное приведение полей текущего пользователя к строке
         String myPref = freshUser.getPreferredGender() != null ? freshUser.getPreferredGender() : "any";
         String myGender = freshUser.getGender() != null ? freshUser.getGender() : "female";
         
-        // ВЫБОРКА С ЗАЩИТОЙ ОТ NULL
         java.util.List<User> filteredUsers = userRepository.findAll().stream()
-            .filter(u -> !u.getId().equals(freshUser.getId())) // Исключаем себя
+            .filter(u -> !u.getId().equals(freshUser.getId())) 
             .filter(u -> {
-                // Защита: подставляем дефолты, если у кого-то в базе поля пустые
                 String userGender = u.getGender() != null ? u.getGender() : "female";
                 String userPref = u.getPreferredGender() != null ? u.getPreferredGender() : "any";
-=======
-        // Вытаскиваем всех пользователей для ленты подбора
-        java.util.List<User> allUsers = userRepository.findAll();
-        model.addAttribute("users", allUsers);
-        System.out.println("Всего пользователей: " + allUsers.size());
-        for (User u : allUsers) {System.out.println("ID: " + u.getId() + ", имя: " + u.getName());}
->>>>>>> ba11ec4064aec2952e3c704c126307f61b3fe6ca
 
-                // Если у нас стоит фильтр "Искать парня" или "Искать девушку"
                 if (!"any".equals(myPref)) {
                     if (!myPref.equals(userGender)) return false;
                 }
-                // Проверяем взаимность: подходит ли текущий пользователь под фильтр собеседника
                 if (!"any".equals(userPref)) {
                     if (!userPref.equals(myGender)) return false;
                 }
@@ -159,7 +158,7 @@ public class FlatmateController {
             
         model.addAttribute("users", filteredUsers);
 
-        // Твоя логика диалогов слева
+        // Панель диалогов слева (Inbox)
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
             .filter(m -> m.getSenderId().equals(freshUser.getId()) || m.getReceiverId().equals(freshUser.getId()))
             .toList();
@@ -172,10 +171,7 @@ public class FlatmateController {
         return "matches";
     }
 
-
-
-
-    // Профиль соседа с анализом совместимости на основе СЕССИИ
+    // Профиль соседа с анализом совместимости
     @GetMapping("/profile/view/{id}")
     public String viewProfile(@PathVariable Long id, Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
@@ -199,7 +195,7 @@ public class FlatmateController {
         return "profile-view";
     }
 
-    // Чат вытаскивает диалог конкретно МЕЖДУ ТОБОЙ (из сессии) и собеседником
+    // Открытие чата (ПОЛНЫЙ ИСПРАВЛЕННЫЙ МЕТОД)
     @GetMapping("/chat/{id}")
     public String showChat(@PathVariable Long id, Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
@@ -207,7 +203,6 @@ public class FlatmateController {
             return "redirect:/login";
         }
 
-        // БЭКЭНД-ФИКС: Всегда обновляем сессию текущего юзера из базы перед открытием чата
         User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
         session.setAttribute("currentUser", freshUser);
 
@@ -218,7 +213,6 @@ public class FlatmateController {
 
         model.addAttribute("chatUser", chatWithUser);
 
-        // Ищем сообщения между обновленным свежим пользователем и собеседником
         java.util.List<ChatMessage> messages = chatMessageRepository
                 .findBySenderIdAndReceiverIdOrSenderIdAndReceiverIdOrderBySentAtAsc(
                         freshUser.getId(), chatWithUser.getId(),
@@ -229,8 +223,7 @@ public class FlatmateController {
         return "chat";
     }
 
-
-    // Отправка сообщения от имени текущего авторизованного пользователя
+    // Отправка сообщения в чат
     @PostMapping("/chat/{id}/send")
     public String sendMessage(@PathVariable Long id, @RequestParam String content, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
@@ -248,7 +241,7 @@ public class FlatmateController {
         }
 
         ChatMessage message = new ChatMessage();
-        message.setSenderId(currentUser.getId()); // Отправитель — строго из сессии
+        message.setSenderId(currentUser.getId());
         message.setReceiverId(receiver.getId());
         message.setContent(content.trim());
         message.setSentAt(java.time.LocalDateTime.now());
@@ -261,7 +254,7 @@ public class FlatmateController {
     // Выход из аккаунта
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate(); // Полностью очищаем сессию
+        session.invalidate(); 
         return "redirect:/";
     }
 }
