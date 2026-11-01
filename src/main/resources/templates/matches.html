@@ -175,23 +175,19 @@
 
 
         .matches-feed {
-
             display: flex;
-
             flex-direction: column;
-
             gap: 20px;
-
             max-height: 85vh;
-
+            overflow-x: hidden;
             overflow-y: auto;
-
             padding-right: 10px;
-
-            max-width: 440px;
-
+            align-items: stretch;
+            max-width: 680px;
         }
-
+        .matches-feed .person-card {
+            flex: 0 0 auto;
+        }
 
 
         .matches-feed::-webkit-scrollbar { width: 4px; }
@@ -203,6 +199,10 @@
 
 
         .person-card {
+            flex-shrink: 0;
+            min-height: 180px;
+            width: 100%;
+            box-sizing: border-box;
 
             background-color: #FFFFFF;
 
