@@ -142,20 +142,7 @@ public class FlatmateController {
         
         java.util.List<User> filteredUsers = userRepository.findAll().stream()
             .filter(u -> !u.getId().equals(freshUser.getId())) 
-            .filter(u -> {
-                String userGender = u.getGender() != null ? u.getGender() : "female";
-                String userPref = u.getPreferredGender() != null ? u.getPreferredGender() : "any";
-
-                if (!"any".equals(myPref)) {
-                    if (!myPref.equals(userGender)) return false;
-                }
-                if (!"any".equals(userPref)) {
-                    if (!userPref.equals(myGender)) return false;
-                }
-                return true;
-            })
             .toList();
-            
         model.addAttribute("users", filteredUsers);
 
         // Панель диалогов слева (Inbox)
