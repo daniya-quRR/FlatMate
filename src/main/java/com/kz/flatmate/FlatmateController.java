@@ -1,7 +1,6 @@
 package com.kz.flatmate;
 
 import com.kz.flatmate.model.User;
-import com.kz.flatmate.model.UserDTO;
 import com.kz.flatmate.repository.UserRepository;
 import com.kz.flatmate.model.ChatMessage;
 import com.kz.flatmate.repository.ChatMessageRepository;
@@ -126,7 +125,34 @@ public class FlatmateController {
         }
     }
     
-    // Лента матчей с обновлением данных сессии
+    // БЭКЭНД-ОПТИМИЗАЦИЯ: Фоновый JSON эндпоинт для загрузки 60+ пользователей без падения фронтенда
+    @GetMapping("/api/users")
+    @ResponseBody
+    public java.util.List<User> getAllUsersForFeed(HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) {
+            return new java.util.ArrayList<>();
+        }
+        
+        User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
+        String myPref = freshUser.getPreferredGender() != null ? freshUser.getPreferredGender() : "any";
+        String myGender = freshUser.getGender() != null ? freshUser.getGender() : "female";
+        
+        return userRepository.findAll().stream()
+            .filter(u -> !u.getId().equals(freshUser.getId())) // Исключаем себя
+            .filter(u -> {
+                String userGender = u.getGender() != null ? u.getGender() : "female";
+                String userPref = u.getPreferredGender() != null ? u.getPreferredGender() : "any";
+
+                // Умный фильтр по полу Мужской/Женский
+                if (!"any".equals(myPref) && !myPref.equals(userGender)) return false;
+                if (!"any".equals(userPref) && !userPref.equals(myGender)) return false;
+                return true;
+            })
+            .toList();
+    }
+    
+    // Лента матчей (загружает только пустую разметку, а JavaScript скачает данные в фоне)
     @GetMapping("/matches")
     public String showMatches(Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
@@ -137,15 +163,6 @@ public class FlatmateController {
         User freshUser = userRepository.findById(currentUser.getId()).orElse(currentUser);
         session.setAttribute("currentUser", freshUser);
         model.addAttribute("currentUser", freshUser);
-        
-        java.util.List<User> filteredUsers = userRepository.findAll().stream()
-            .filter(u -> !u.getId().equals(freshUser.getId())) 
-            .toList();
-        java.util.List<UserDTO> userDTOs = filteredUsers.stream()
-        .map(UserDTO::new)
-        .toList();
-
-        model.addAttribute("users", userDTOs);
 
         // Панель диалогов слева (Inbox)
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
@@ -184,7 +201,7 @@ public class FlatmateController {
         return "profile-view";
     }
 
-    // Открытие чата (ПОЛНЫЙ ИСПРАВЛЕННЫЙ МЕТОД)
+    // Открытие чата
     @GetMapping("/chat/{id}")
     public String showChat(@PathVariable Long id, Model model, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
@@ -212,7 +229,7 @@ public class FlatmateController {
         return "chat";
     }
 
-    // Отправка сообщения в чат
+    // Отправка сообщения в чат (ВОССТАНОВЛЕН ПОСЛЕ ОБРЫВА)
     @PostMapping("/chat/{id}/send")
     public String sendMessage(@PathVariable Long id, @RequestParam String content, HttpSession session) {
         User currentUser = (User) session.getAttribute("currentUser");
