@@ -138,9 +138,6 @@ public class FlatmateController {
         session.setAttribute("currentUser", freshUser);
         model.addAttribute("currentUser", freshUser);
         
-        String myPref = freshUser.getPreferredGender() != null ? freshUser.getPreferredGender() : "any";
-        String myGender = freshUser.getGender() != null ? freshUser.getGender() : "female";
-        
         java.util.List<User> filteredUsers = userRepository.findAll().stream()
             .filter(u -> !u.getId().equals(freshUser.getId())) 
             .toList();
