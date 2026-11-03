@@ -1,6 +1,7 @@
 package com.kz.flatmate;
 
 import com.kz.flatmate.model.User;
+import com.kz.flatmate.model.UserDTO;
 import com.kz.flatmate.repository.UserRepository;
 import com.kz.flatmate.model.ChatMessage;
 import com.kz.flatmate.repository.ChatMessageRepository;
@@ -143,7 +144,11 @@ public class FlatmateController {
         java.util.List<User> filteredUsers = userRepository.findAll().stream()
             .filter(u -> !u.getId().equals(freshUser.getId())) 
             .toList();
-        model.addAttribute("users", filteredUsers);
+        java.util.List<UserDTO> userDTOs = filteredUsers.stream()
+        .map(UserDTO::new)
+        .toList();
+
+        model.addAttribute("users", userDTOs);
 
         // Панель диалогов слева (Inbox)
         java.util.List<ChatMessage> myMessages = chatMessageRepository.findAll().stream()
