@@ -363,6 +363,24 @@
                 Написать сообщение ↗
             </a>
 
+            <div th:if="${compatibility != null}" style="margin-top:14px; padding:16px; border:1px solid #E2EDE5; border-radius:15px; background:#F5F9F5;">
+                <strong th:if="${roommateMatchConfirmed}" style="color:#295241;">✓ Вы нашли друг друга как соседи</strong>
+                <div th:if="${roommateMatchConfirmed}" style="margin-top:5px; color:#77756E; font-size:13px;">Это подтверждено вами обоими.</div>
+
+                <div th:if="${!roommateMatchConfirmed}" style="font-size:13px; color:#55534F; line-height:1.5;">
+                    <strong>Уже договорились жить вместе?</strong>
+                    <div th:if="${roommateMatchConfirmedByThem}" style="margin-top:4px; color:#295241;">Сосед уже подтвердил. Подтвердите со своей стороны.</div>
+                    <div th:if="${roommateMatchConfirmedByMe}" style="margin-top:4px;">Вы отметили это. Ждём подтверждения соседа.</div>
+                </div>
+
+                <form th:if="${!roommateMatchConfirmed and !roommateMatchConfirmedByMe}"
+                      th:action="@{/roommate-match/{id}/confirm(id=${profileUser.id})}" method="post">
+                    <button type="submit" style="width:100%; margin-top:12px; padding:12px; border:0; border-radius:11px; background:#295241; color:white; font-weight:700; cursor:pointer;">
+                        Да, мы нашли друг друга
+                    </button>
+                </form>
+            </div>
+
         </section>
 
         <!-- СОВМЕСТИМОСТЬ -->

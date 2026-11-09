@@ -4,6 +4,8 @@ import com.kz.flatmate.model.User;
 import com.kz.flatmate.repository.UserRepository;
 import com.kz.flatmate.model.ChatMessage;
 import com.kz.flatmate.repository.ChatMessageRepository;
+import com.kz.flatmate.model.RoommateMatch;
+import com.kz.flatmate.repository.RoommateMatchRepository;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +24,9 @@ public class FlatmateController {
 
     @Autowired
     private CompatibilityService compatibilityService;
+
+    @Autowired
+    private RoommateMatchRepository roommateMatchRepository;
 
     @GetMapping("/")
     public String showIndex() {
@@ -151,6 +156,40 @@ public class FlatmateController {
             })
             .toList();
     }
+
+    @GetMapping("/api/roommate-matches")
+    @ResponseBody
+    public java.util.List<Long> getConfirmedRoommateMatches(HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) return java.util.List.of();
+
+        return roommateMatchRepository.findAll().stream()
+                .filter(RoommateMatch::isConfirmed)
+                .flatMap(match -> java.util.stream.Stream.of(match.getUserOneId(), match.getUserTwoId()))
+                .distinct()
+                .toList();
+    }
+
+    @PostMapping("/roommate-match/{id}/confirm")
+    public String confirmRoommateMatch(@PathVariable Long id, HttpSession session) {
+        User currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser == null) return "redirect:/login";
+        if (currentUser.getId().equals(id) || !userRepository.existsById(id)) return "redirect:/matches";
+
+        Long one = Math.min(currentUser.getId(), id);
+        Long two = Math.max(currentUser.getId(), id);
+        RoommateMatch match = roommateMatchRepository.findByUserOneIdAndUserTwoId(one, two)
+                .orElseGet(() -> {
+                    RoommateMatch created = new RoommateMatch();
+                    created.setUserOneId(one);
+                    created.setUserTwoId(two);
+                    return created;
+                });
+        if (currentUser.getId().equals(one)) match.setUserOneConfirmed(true);
+        else match.setUserTwoConfirmed(true);
+        roommateMatchRepository.save(match);
+        return "redirect:/profile/view/" + id;
+    }
     
     // Лента матчей (загружает только пустую разметку, а JavaScript скачает данные в фоне)
     @GetMapping("/matches")
@@ -191,6 +230,18 @@ public class FlatmateController {
         }
 
         model.addAttribute("profileUser", roommate);
+
+        if (!currentUser.getId().equals(roommate.getId())) {
+            Long one = Math.min(currentUser.getId(), roommate.getId());
+            Long two = Math.max(currentUser.getId(), roommate.getId());
+            RoommateMatch match = roommateMatchRepository.findByUserOneIdAndUserTwoId(one, two).orElse(null);
+            boolean confirmedByMe = match != null && (currentUser.getId().equals(one)
+                    ? match.isUserOneConfirmed() : match.isUserTwoConfirmed());
+            model.addAttribute("roommateMatchConfirmedByMe", confirmedByMe);
+            model.addAttribute("roommateMatchConfirmed", match != null && match.isConfirmed());
+            model.addAttribute("roommateMatchConfirmedByThem", match != null && (currentUser.getId().equals(one)
+                    ? match.isUserTwoConfirmed() : match.isUserOneConfirmed()));
+        }
 
         if (!currentUser.getId().equals(roommate.getId())) {
             CompatibilityService.Result result = compatibilityService.compare(currentUser, roommate);

@@ -606,13 +606,18 @@
 </script>
 
 <script th:inline="none">
+    var confirmedRoommateIds = new Set();
     // 1. АСИНХРОННЫЙ АПДЕЙТ АНКЕТ ДЛЯ ХОСТИНГА (БЕЗ ДУБЛИРОВАНИЯ ИМЕНИ)
     fetch('/api/users')
         .then(function(res) { return res.json(); })
         .then(function(data) {
             dbUsers = data; // Перезаписываем глобальный массив свежими 60+ пользователями
             console.log("Успешно подгружено анкет через API:", dbUsers.length);
-            initMatchesFeed(); // Запускаем рендеринг
+            return fetch('/api/roommate-matches')
+                .then(function(res) { return res.json(); })
+                .then(function(ids) { confirmedRoommateIds = new Set(ids.map(String)); })
+                .catch(function() {})
+                .then(initMatchesFeed);
         })
         .catch(function(err) { 
             console.error("Ошибка AJAX-загрузки анкет:", err); 
@@ -736,6 +741,9 @@
                     var course = escapeHtml(roommate.course ? roommate.course + " курс" : "Курс не указан");
                     var uni = escapeHtml(roommate.university || "ВУЗ не указан");
                     var score = roommate.compatibility ?? "—";
+                    var foundNeighborBadge = confirmedRoommateIds.has(String(roommate.id))
+                        ? '<span style="font-size:11px;color:#295241;font-weight:700;background:#EDF5EF;padding:5px 10px;border-radius:20px;width:fit-content;margin-top:5px;">✓ Уже нашли соседа</span>'
+                        : '';
 
                     var defaultPhoto = "https://gstatic.com";
                     var photoUrl = roommate.photo && roommate.photo.trim() !== "" ? roommate.photo : defaultPhoto;
@@ -753,6 +761,7 @@
                                     '<span style="font-size: 11px; color: #295241; font-weight: 700; background: #FFFBF7; padding: 2px 10px; border-radius: 20px; width: fit-content; border: 1px solid #E2DFD5; margin-top: 4px; display: inline-block;">' +
                                         'Совпадает критериев: ' + matchedReasons.length + ' из ' + fields.length +
                                     '</span>' +
+                                    foundNeighborBadge +
                                 '</div>' +
                             '</div>' +
                             '<!-- КРУГЛАЯ ПЛАШКА С ПРОЦЕНТОМ -->' +
