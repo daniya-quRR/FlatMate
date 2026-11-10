@@ -1184,8 +1184,9 @@ function render() {
     av.style.backgroundImage = `url(${state.photo})`;
     av.textContent = "";
   } else {
-    av.style.backgroundImage = "";
-    av.textContent = name ? name[0].toUpperCase() : "?";
+    const gender = $('gender') ? $('gender').value : "female";
+    av.style.backgroundImage = `url('/avatar-${gender === 'male' ? 'male' : 'female'}.svg')`;
+    av.textContent = "";
   }
 
   $('badge').classList.toggle(
@@ -1526,7 +1527,7 @@ document.addEventListener("DOMContentLoaded", () => {
   
   render();
 
-  ['name', 'age', 'uni', 'course', 'bio'].forEach(id => {
+  ['name', 'age', 'uni', 'course', 'bio', 'gender'].forEach(id => {
     const el = $(id);
     if (el) {
       el.addEventListener('input', render);

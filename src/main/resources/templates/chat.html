@@ -58,7 +58,10 @@
       background: linear-gradient(135deg, #56715E 0%, #243E33 100%);
       background-size: cover;
       background-position: center;
+      overflow: hidden;
     }
+
+    .chat-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
     .header-user-info h3 {
       font-size: 17px;
@@ -236,7 +239,9 @@
     <a th:href="@{/matches}" class="back-arrow-btn">←</a>
 <!-- Если у собеседника есть фото, ставим его на фон, если нет — сработает красивый дефолтный градиент -->
 <div class="chat-avatar" 
-     th:style="${chatUser.photo != null && !chatUser.photo.isEmpty()} ? 'background-image: url(' + ${chatUser.photo} + '); background-size: cover; background-position: center;' : 'background: linear-gradient(135deg, #56715E 0%, #243E33 100%);'">
+     th:style="${chatUser.photo != null && !chatUser.photo.isEmpty()} ? 'background-image: url(' + ${chatUser.photo} + '); background-size: cover; background-position: center;' : ''">
+  <img th:if="${chatUser.photo == null || chatUser.photo.isEmpty()}"
+       th:src="${chatUser.gender == 'male' ? '/avatar-male.svg' : '/avatar-female.svg'}" alt="Аватар пользователя">
 </div>
     <div class="header-user-info">
       <h3 th:text="${chatUser.name}">Имя студента</h3>
