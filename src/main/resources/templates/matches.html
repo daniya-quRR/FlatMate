@@ -189,6 +189,48 @@
             flex: 0 0 auto;
         }
 
+        .person-card[hidden] { display: none !important; }
+
+        .match-search {
+            position: sticky;
+            top: 0;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 16px;
+            background: #FFFFFF;
+            border: 1px solid #E2DFD5;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.035);
+        }
+
+        .match-search svg { width: 19px; height: 19px; color: #8A857B; flex: 0 0 auto; }
+
+        .match-search input {
+            width: 100%;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: #171513;
+            font: inherit;
+            font-size: 14px;
+        }
+
+        .match-search input::placeholder { color: #9A958B; }
+
+        .search-empty {
+            padding: 28px 20px;
+            background: #FFFFFF;
+            border: 1px solid #E2DFD5;
+            border-radius: 20px;
+            color: #77756E;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .search-empty strong { display: block; color: #171513; margin-bottom: 4px; }
+
 
         .matches-feed::-webkit-scrollbar { width: 4px; }
 
@@ -595,7 +637,10 @@
 
 
     <div class="matches-feed" id="matchesFeed">
-        <!-- Карточки совпадений создаются автоматически -->
+        <label class="match-search" for="matchSearchInput">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <input id="matchSearchInput" type="search" placeholder="Найти соседа по имени" autocomplete="off" aria-label="Поиск соседей по имени">
+        </label>
     </div>
 </div>
 
@@ -739,7 +784,7 @@
             var favoriteIds = new Set(favorites.map(function(item) { return String(item.id); }));
 
             if (feed) {
-                feed.innerHTML = matches.map(function(roommate) {
+                var cardsMarkup = matches.map(function(roommate) {
                     var isFavorite = favoriteIds.has(String(roommate.id));
                     var name = escapeHtml(roommate.name || "Студент");
                     var age = roommate.age == null ? "" : ", " + escapeHtml(roommate.age);
@@ -755,7 +800,7 @@
 
                     var matchedReasons = roommate.preferenceResults ? roommate.preferenceResults.filter(function(r) { return r.matched; }) : [];
 
-                    return '<div class="person-card" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
+                    return '<div class="person-card" data-name="' + escapeHtml(roommate.name || "Студент").toLowerCase() + '" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
                             '<a href="/profile/view/' + encodeURIComponent(roommate.id) + '" style="flex:1; min-width:0; display:flex; justify-content:space-between; align-items:center; gap:12px; text-decoration:none; color:inherit;">' +
                             '<div style="display: flex; align-items: center; gap: 20px;">' +
                                 '<!-- Фото -->' +
@@ -779,6 +824,24 @@
                             '<button type="button" class="favorite-button' + (isFavorite ? ' is-favorite' : '') + '" data-roommate-id="' + escapeHtml(roommate.id) + '" aria-label="' + (isFavorite ? 'Убрать из избранного' : 'Добавить в избранное') + '" aria-pressed="' + isFavorite + '" title="' + (isFavorite ? 'Убрать из избранного' : 'Добавить в избранное') + '" style="width:42px;height:42px;flex:0 0 42px;border-radius:50%;background:#F6F4EB;display:flex;align-items:center;justify-content:center;font-size:23px;">' + (isFavorite ? '♥' : '♡') + '</button>' +
                         '</div>';
                 }).join("");
+                feed.insertAdjacentHTML("beforeend", cardsMarkup + '<div class="search-empty" id="searchEmpty" hidden><strong>Никого не нашли</strong>Попробуйте другое имя.</div>');
+
+                var searchInput = document.getElementById("matchSearchInput");
+                var searchEmpty = document.getElementById("searchEmpty");
+                if (searchInput) {
+                    searchInput.addEventListener("input", function() {
+                        var query = searchInput.value.trim().toLocaleLowerCase();
+                        var visibleCount = 0;
+                        feed.querySelectorAll(".person-card").forEach(function(card) {
+                            var isVisible = card.dataset.name.includes(query);
+                            card.hidden = !isVisible;
+                            if (isVisible) visibleCount++;
+                        });
+                        if (searchEmpty) searchEmpty.hidden = visibleCount > 0;
+                        var word = visibleCount === 1 ? "анкета" : (visibleCount >= 2 && visibleCount <= 4 ? "анкеты" : "анкет");
+                        if (pageTitleEl) pageTitleEl.textContent = visibleCount + " " + word;
+                    });
+                }
             }
 
             document.querySelectorAll(".favorite-button").forEach(function(button) {
