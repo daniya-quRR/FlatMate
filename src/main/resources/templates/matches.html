@@ -191,10 +191,9 @@
 
         .person-card[hidden] { display: none !important; }
 
+        .match-controls { position: sticky; top: 0; z-index: 3; display: grid; gap: 10px; padding: 10px; background: #F6F4EB; }
+
         .match-search {
-            position: sticky;
-            top: 0;
-            z-index: 3;
             display: flex;
             align-items: center;
             gap: 12px;
@@ -202,7 +201,7 @@
             background: #FFFFFF;
             border: 1px solid #E2DFD5;
             border-radius: 16px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.035);
+            box-shadow: 0 5px 16px rgba(23,21,19,0.04);
         }
 
         .match-search svg { width: 19px; height: 19px; color: #8A857B; flex: 0 0 auto; }
@@ -218,6 +217,10 @@
         }
 
         .match-search input::placeholder { color: #9A958B; }
+
+        .match-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .match-filter { min-width: 0; padding: 11px 13px; border: 1px solid #E2DFD5; border-radius: 13px; background: #FFFFFF; color: #514E48; font: inherit; font-size: 13px; outline: none; }
+        .match-filter:focus { border-color: #295241; box-shadow: 0 0 0 3px rgba(41,82,65,.1); }
 
         .search-empty {
             padding: 28px 20px;
@@ -637,10 +640,16 @@
 
 
     <div class="matches-feed" id="matchesFeed">
-        <label class="match-search" for="matchSearchInput">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-            <input id="matchSearchInput" type="search" placeholder="Найти соседа по имени" autocomplete="off" aria-label="Поиск соседей по имени">
-        </label>
+        <div class="match-controls">
+            <label class="match-search" for="matchSearchInput">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8" stroke="currentColor" stroke-width="1.8"/><path d="m16 16 4.3 4.3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                <input id="matchSearchInput" type="search" placeholder="Найти соседа по имени" autocomplete="off" aria-label="Поиск соседей по имени">
+            </label>
+            <div class="match-filters">
+                <select id="universityFilter" class="match-filter" aria-label="Фильтр по университету"><option value="">Все университеты</option></select>
+                <select id="courseFilter" class="match-filter" aria-label="Фильтр по курсу"><option value="">Все курсы</option></select>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -800,7 +809,7 @@
 
                     var matchedReasons = roommate.preferenceResults ? roommate.preferenceResults.filter(function(r) { return r.matched; }) : [];
 
-                    return '<div class="person-card" data-name="' + escapeHtml(roommate.name || "Студент").toLowerCase() + '" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
+                    return '<div class="person-card" data-name="' + escapeHtml(roommate.name || "Студент").toLowerCase() + '" data-university="' + escapeHtml(roommate.university || "").toLowerCase() + '" data-course="' + escapeHtml(roommate.course || "").toLowerCase() + '" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
                             '<a href="/profile/view/' + encodeURIComponent(roommate.id) + '" style="flex:1; min-width:0; display:flex; justify-content:space-between; align-items:center; gap:12px; text-decoration:none; color:inherit;">' +
                             '<div style="display: flex; align-items: center; gap: 20px;">' +
                                 '<!-- Фото -->' +
@@ -816,9 +825,8 @@
                                 '</div>' +
                             '</div>' +
                             '<!-- КРУГЛАЯ ПЛАШКА С ПРОЦЕНТОМ -->' +
-                            '<div style="background: #295241; color: white; width: 56px; height: 56px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(41,82,65,0.2); flex-shrink: 0;">' +
-                                '<span style="font-size: 18px; font-weight: 800; line-height: 1;">' + score + '</span>' +
-                                '<span style="font-size: 10px; font-weight: 700; opacity: 0.8; margin-top: 1px;">%</span>' +
+                            '<div aria-label="Совместимость ' + score + '%" style="background:conic-gradient(#295241 ' + score + '%,#E7EEE9 ' + score + '%);color:#295241;width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 5px 14px rgba(41,82,65,.15);">' +
+                                '<div style="width:58px;height:58px;border-radius:50%;background:white;display:flex;flex-direction:column;align-items:center;justify-content:center;"><span style="font-size:20px;font-weight:800;line-height:1;">' + score + '</span><span style="font-size:9px;font-weight:700;color:#8A857B;margin-top:3px;">MATCH</span></div>' +
                             '</div>' +
                             '</a>' +
                             '<button type="button" class="favorite-button' + (isFavorite ? ' is-favorite' : '') + '" data-roommate-id="' + escapeHtml(roommate.id) + '" aria-label="' + (isFavorite ? 'Убрать из избранного' : 'Добавить в избранное') + '" aria-pressed="' + isFavorite + '" title="' + (isFavorite ? 'Убрать из избранного' : 'Добавить в избранное') + '" style="width:42px;height:42px;flex:0 0 42px;border-radius:50%;background:#F6F4EB;display:flex;align-items:center;justify-content:center;font-size:23px;">' + (isFavorite ? '♥' : '♡') + '</button>' +
@@ -827,21 +835,39 @@
                 feed.insertAdjacentHTML("beforeend", cardsMarkup + '<div class="search-empty" id="searchEmpty" hidden><strong>Никого не нашли</strong>Попробуйте другое имя.</div>');
 
                 var searchInput = document.getElementById("matchSearchInput");
+                var universityFilter = document.getElementById("universityFilter");
+                var courseFilter = document.getElementById("courseFilter");
                 var searchEmpty = document.getElementById("searchEmpty");
-                if (searchInput) {
-                    searchInput.addEventListener("input", function() {
-                        var query = searchInput.value.trim().toLocaleLowerCase();
-                        var visibleCount = 0;
-                        feed.querySelectorAll(".person-card").forEach(function(card) {
-                            var isVisible = card.dataset.name.includes(query);
-                            card.hidden = !isVisible;
-                            if (isVisible) visibleCount++;
-                        });
-                        if (searchEmpty) searchEmpty.hidden = visibleCount > 0;
-                        var word = visibleCount === 1 ? "анкета" : (visibleCount >= 2 && visibleCount <= 4 ? "анкеты" : "анкет");
-                        if (pageTitleEl) pageTitleEl.textContent = visibleCount + " " + word;
+                function fillFilter(select, values) {
+                    Array.from(new Set(values.filter(Boolean))).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(value) {
+                        var option = document.createElement("option");
+                        option.value = value.toLocaleLowerCase();
+                        option.textContent = value;
+                        select.appendChild(option);
                     });
                 }
+                if (universityFilter) fillFilter(universityFilter, matches.map(function(person) { return person.university; }));
+                if (courseFilter) fillFilter(courseFilter, matches.map(function(person) { return person.course; }));
+
+                function applyFilters() {
+                    var query = searchInput ? searchInput.value.trim().toLocaleLowerCase() : "";
+                    var selectedUniversity = universityFilter ? universityFilter.value : "";
+                    var selectedCourse = courseFilter ? courseFilter.value : "";
+                    var visibleCount = 0;
+                    feed.querySelectorAll(".person-card").forEach(function(card) {
+                        var isVisible = card.dataset.name.includes(query)
+                            && (!selectedUniversity || card.dataset.university === selectedUniversity)
+                            && (!selectedCourse || card.dataset.course === selectedCourse);
+                        card.hidden = !isVisible;
+                        if (isVisible) visibleCount++;
+                    });
+                    if (searchEmpty) searchEmpty.hidden = visibleCount > 0;
+                    var word = visibleCount === 1 ? "анкета" : (visibleCount >= 2 && visibleCount <= 4 ? "анкеты" : "анкет");
+                    if (pageTitleEl) pageTitleEl.textContent = visibleCount + " " + word;
+                }
+                if (searchInput) searchInput.addEventListener("input", applyFilters);
+                if (universityFilter) universityFilter.addEventListener("change", applyFilters);
+                if (courseFilter) courseFilter.addEventListener("change", applyFilters);
             }
 
             document.querySelectorAll(".favorite-button").forEach(function(button) {
