@@ -219,8 +219,12 @@
         .match-search input::placeholder { color: #9A958B; }
 
         .match-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .match-extra-controls { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
         .match-filter { min-width: 0; padding: 11px 13px; border: 1px solid #E2DFD5; border-radius: 13px; background: #FFFFFF; color: #514E48; font: inherit; font-size: 13px; outline: none; }
         .match-filter:focus { border-color: #295241; box-shadow: 0 0 0 3px rgba(41,82,65,.1); }
+        .favorites-filter { border: 1px solid #E2DFD5; border-radius: 13px; background: #FFFFFF; padding: 10px 13px; color: #514E48; font: inherit; font-size: 13px; font-weight: 650; cursor: pointer; transition: .15s; }
+        .favorites-filter.active { background: #EDF5EF; border-color: #B9D0C0; color: #295241; }
+        @media (max-width: 480px) { .match-extra-controls { grid-template-columns: 1fr; } }
 
         .search-empty {
             padding: 28px 20px;
@@ -649,6 +653,13 @@
                 <select id="universityFilter" class="match-filter" aria-label="Фильтр по университету"><option value="">Все университеты</option></select>
                 <select id="courseFilter" class="match-filter" aria-label="Фильтр по курсу"><option value="">Все курсы</option></select>
             </div>
+            <div class="match-extra-controls">
+                <select id="compatibilitySort" class="match-filter" aria-label="Сортировка по совместимости">
+                    <option value="desc">Сначала высокая совместимость</option>
+                    <option value="asc">Сначала низкая совместимость</option>
+                </select>
+                <button id="favoritesOnly" class="favorites-filter" type="button" aria-pressed="false">♡ Только избранное</button>
+            </div>
         </div>
     </div>
 </div>
@@ -809,7 +820,7 @@
 
                     var matchedReasons = roommate.preferenceResults ? roommate.preferenceResults.filter(function(r) { return r.matched; }) : [];
 
-                    return '<div class="person-card" data-name="' + escapeHtml(roommate.name || "Студент").toLowerCase() + '" data-university="' + escapeHtml(roommate.university || "").toLowerCase() + '" data-course="' + escapeHtml(roommate.course || "").toLowerCase() + '" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
+                    return '<div class="person-card" data-score="' + roommate.compatibility + '" data-name="' + escapeHtml(roommate.name || "Студент").toLowerCase() + '" data-university="' + escapeHtml(roommate.university || "").toLowerCase() + '" data-course="' + escapeHtml(roommate.course || "").toLowerCase() + '" style="min-height:0;flex-direction:row;margin-bottom:15px;border:1px solid #E2DFD5;border-radius:20px;padding:12px 16px;background:white;display:flex;gap:12px;justify-content:space-between;align-items:center;transition:transform .15s;box-shadow:0 4px 12px rgba(0,0,0,.02);">' +
                             '<a href="/profile/view/' + encodeURIComponent(roommate.id) + '" style="flex:1; min-width:0; display:flex; justify-content:space-between; align-items:center; gap:12px; text-decoration:none; color:inherit;">' +
                             '<div style="display: flex; align-items: center; gap: 20px;">' +
                                 '<!-- Фото -->' +
@@ -837,7 +848,10 @@
                 var searchInput = document.getElementById("matchSearchInput");
                 var universityFilter = document.getElementById("universityFilter");
                 var courseFilter = document.getElementById("courseFilter");
+                var compatibilitySort = document.getElementById("compatibilitySort");
+                var favoritesOnly = document.getElementById("favoritesOnly");
                 var searchEmpty = document.getElementById("searchEmpty");
+                var showFavoritesOnly = false;
                 function fillFilter(select, values) {
                     Array.from(new Set(values.filter(Boolean))).sort(function(a, b) { return a.localeCompare(b); }).forEach(function(value) {
                         var option = document.createElement("option");
@@ -853,11 +867,15 @@
                     var query = searchInput ? searchInput.value.trim().toLocaleLowerCase() : "";
                     var selectedUniversity = universityFilter ? universityFilter.value : "";
                     var selectedCourse = courseFilter ? courseFilter.value : "";
+                    var currentFavorites = [];
+                    try { currentFavorites = JSON.parse(localStorage.getItem("flatmateFavorites") || "[]"); } catch (e) {}
+                    var currentFavoriteIds = new Set(currentFavorites.map(function(item) { return String(item.id); }));
                     var visibleCount = 0;
                     feed.querySelectorAll(".person-card").forEach(function(card) {
                         var isVisible = card.dataset.name.includes(query)
                             && (!selectedUniversity || card.dataset.university === selectedUniversity)
-                            && (!selectedCourse || card.dataset.course === selectedCourse);
+                            && (!selectedCourse || card.dataset.course === selectedCourse)
+                            && (!showFavoritesOnly || currentFavoriteIds.has(card.querySelector(".favorite-button").dataset.roommateId));
                         card.hidden = !isVisible;
                         if (isVisible) visibleCount++;
                     });
@@ -868,6 +886,20 @@
                 if (searchInput) searchInput.addEventListener("input", applyFilters);
                 if (universityFilter) universityFilter.addEventListener("change", applyFilters);
                 if (courseFilter) courseFilter.addEventListener("change", applyFilters);
+                if (favoritesOnly) favoritesOnly.addEventListener("click", function() {
+                    showFavoritesOnly = !showFavoritesOnly;
+                    favoritesOnly.classList.toggle("active", showFavoritesOnly);
+                    favoritesOnly.setAttribute("aria-pressed", String(showFavoritesOnly));
+                    favoritesOnly.textContent = showFavoritesOnly ? "♥ Показаны избранные" : "♡ Только избранное";
+                    applyFilters();
+                });
+                if (compatibilitySort) compatibilitySort.addEventListener("change", function() {
+                    var cards = Array.from(feed.querySelectorAll(".person-card"));
+                    cards.sort(function(a, b) {
+                        var difference = Number(a.dataset.score) - Number(b.dataset.score);
+                        return compatibilitySort.value === "asc" ? difference : -difference;
+                    }).forEach(function(card) { feed.insertBefore(card, searchEmpty); });
+                });
             }
 
             document.querySelectorAll(".favorite-button").forEach(function(button) {
@@ -912,6 +944,8 @@
                     button.setAttribute("aria-label", isFavorite ? "Убрать из избранного" : "Добавить в избранное");
                     button.title = isFavorite ? "Убрать из избранного" : "Добавить в избранное";
                     button.textContent = isFavorite ? "♥" : "♡";
+                    var searchField = document.getElementById("matchSearchInput");
+                    if (searchField) searchField.dispatchEvent(new Event("input"));
                 });
             });
         }
