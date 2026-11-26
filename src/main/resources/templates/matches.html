@@ -808,7 +808,10 @@
                     var isFavorite = favoriteIds.has(String(roommate.id));
                     var name = escapeHtml(roommate.name || "Студент");
                     var age = roommate.age == null ? "" : ", " + escapeHtml(roommate.age);
-                    var course = escapeHtml(roommate.course ? roommate.course + " курс" : "Курс не указан");
+                    var courseLabel = roommate.course === "5" ? "Магистратура, 1 год"
+                        : roommate.course === "6" ? "Магистратура, 2 год"
+                        : roommate.course ? roommate.course + " курс" : "Курс не указан";
+                    var course = escapeHtml(courseLabel);
                     var uni = escapeHtml(roommate.university || "ВУЗ не указан");
                     var score = roommate.compatibility ?? "—";
                     var foundNeighborBadge = confirmedRoommateIds.has(String(roommate.id))
@@ -857,7 +860,7 @@
                 function normalizeFilterValue(value) {
                     return String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase();
                 }
-                function fillFilter(select, values) {
+                function fillFilter(select, values, formatLabel) {
                     var uniqueValues = new Map();
                     values.forEach(function(value) {
                         var label = String(value || "").trim().replace(/\s+/g, " ");
@@ -867,12 +870,14 @@
                     Array.from(uniqueValues.entries()).sort(function(a, b) { return a[1].localeCompare(b[1]); }).forEach(function(entry) {
                         var option = document.createElement("option");
                         option.value = entry[0];
-                        option.textContent = entry[1];
+                        option.textContent = formatLabel ? formatLabel(entry[1]) : entry[1];
                         select.appendChild(option);
                     });
                 }
                 if (universityFilter) fillFilter(universityFilter, matches.map(function(person) { return person.university; }));
-                if (courseFilter) fillFilter(courseFilter, matches.map(function(person) { return person.course; }));
+                if (courseFilter) fillFilter(courseFilter, matches.map(function(person) { return person.course; }), function(value) {
+                    return value === "5" ? "Магистратура, 1 год" : value === "6" ? "Магистратура, 2 год" : value + " курс";
+                });
 
                 function applyFilters() {
                     var query = searchInput ? searchInput.value.trim().toLocaleLowerCase() : "";
